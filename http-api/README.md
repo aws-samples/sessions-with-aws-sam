@@ -14,12 +14,6 @@ HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTIO
 OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. -->
 
-# Sessions With SAM
+# HTTP API with JWT
 
-This repo contains all the SAM templates created in the Twitch serios #SessionsWithSAM. The show is every Tuesday on [Twitch](https://twitch.tv/aws) at 10 AM PDT.
-
-## Instructions
-
-
-## Templates
-1. [HTTP API with JWT](./http-api/README.md)
+Simple HTTP API SAM template with a non-authenticated endpoint and an authenticated endpoint using Amazon Cognito as the identity provider.
