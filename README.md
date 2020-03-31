@@ -16,7 +16,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. -->
 
 # Sessions With SAM
 
-This repo contains all the SAM templates created in the Twitch serios #SessionsWithSAM. The show is every Tuesday on [Twitch](https://twitch.tv/aws) at 10 AM PDT.
+This repo contains all the SAM templates created in the Twitch series #SessionsWithSAM. The show is every Thursday on [Twitch](https://twitch.tv/aws) at 10 AM PDT.
 
 ## Instructions
 
