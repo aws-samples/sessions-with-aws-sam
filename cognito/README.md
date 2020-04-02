@@ -14,13 +14,6 @@ HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTIO
 OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. -->
 
-# Sessions With SAM
+# Amazon Cognito
 
-This repo contains all the SAM templates created in the Twitch serios #SessionsWithSAM. The show is every Tuesday on [Twitch](https://twitch.tv/aws) at 10 AM PDT.
-
-## Instructions
-
-
-## Templates
-1. [HTTP API with JWT](./http-api/README.md)
-1. [Cognito](./cognito/README.md)
+Template to create a cognito backend to use with HTTP APIs JWT authorizer. Includes option to add Cognito user groups as custom scopes for route access.
