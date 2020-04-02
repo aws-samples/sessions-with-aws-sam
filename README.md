@@ -18,9 +18,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. -->
 
 This repo contains all the SAM templates created in the Twitch serios #SessionsWithSAM. The show is every Tuesday on [Twitch](https://twitch.tv/aws) at 10 AM PDT.
 
-## Instructions
-
-
 ## Templates
 1. [HTTP API with JWT](./http-api/README.md)
 1. [Cognito](./cognito/README.md)
