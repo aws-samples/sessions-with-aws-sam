@@ -48,8 +48,23 @@ Resources:
             Path: /
             Method: get
             ApiId: !Ref HttpApi
+
+  # Basic auth
+  SimpleAuthLambdaFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: src/
+      Events:
+        RootGet:
+          Type: HttpApi
+          Properties:
+            Auth:
+              Authorizer: GeneralAuth
+            Path: /simple
+            Method: get
+            ApiId: !Ref HttpApi
   
-  # Route for admins only
+  # Route for admins only: requires custom token (see cognito example)
   AdminLambdaFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -66,7 +81,7 @@ Resources:
             Method: get
             ApiId: !Ref HttpApi
   
-  # Route for SU only
+  # Route for SU only: requires custom token (see cognito example)
   SULambdaFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -83,7 +98,7 @@ Resources:
             Method: get
             ApiId: !Ref HttpApi
 
-  # Route for Admins and SU only
+  # Route for Admins and SU only: requires custom token (see cognito example)
   BothLambdaFunction:
     Type: AWS::Serverless::Function
     Properties:
