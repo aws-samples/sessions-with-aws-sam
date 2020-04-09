@@ -1,0 +1,80 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: EventBridge template
+
+Globals:
+  Function:
+    Timeout: 5
+    CodeUri: src/
+    Runtime: nodejs12.x
+
+Resources:
+  CustomBus:
+    Type: AWS::Events::EventBus
+    Properties:
+      Name: SuperBus2
+
+  EndpointFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: endpoint.lambdaHandler
+      Policies:
+        - EventBridgePutEventsPolicy:
+            EventBusName: !Ref CustomBus
+      Environment:
+        Variables:
+          EVENT_BUS_NAME: !Ref CustomBus
+      Events:
+        API:
+          Type: HttpApi
+          Properties:
+            Path: /
+            Method: POST
+
+  TranslateFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: translate.lambdaHandler
+      Policies:
+        - ComprehendBasicAccessPolicy: {}
+        - Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Action:
+                - 'translate:TranslateText'
+              Resource: '*'
+      Events:
+        TranslateFilter:
+          Type: EventBridgeRule
+          Properties:
+            # Input: String '{"Key": "Value"}' Data that is sent to target, if used, event is not sent
+            # InputPath: String path to part of event desired
+            EventBusName: !Ref CustomBus
+            Pattern:
+              source:
+                - "TextEndpoint"
+              detail-type:
+                - "translate"
+
+  SentimentFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: sentiment.lambdaHandler
+      Policies:
+        - ComprehendBasicAccessPolicy: {}
+      Events:
+        SentimentFilter:
+          Type: EventBridgeRule
+          Properties:
+            EventBusName: !Ref CustomBus
+            Pattern:
+              source:
+                - "TextEndpoint"
+              detail-type:
+                - "sentiment"
+
+Outputs:
+  APIUrl:
+    Description: "HTTP API endpoint URL"
+    Value: !Sub "https://${ServerlessHttpApi}.execute-api.${AWS::Region}.amazonaws.com"
+

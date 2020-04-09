@@ -14,11 +14,6 @@ HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTIO
 OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. -->
 
-# Sessions With SAM
+# EventBridge
 
-This repo contains all the SAM templates created in the Twitch series #SessionsWithSAM. The show is every Thursday on [Twitch](https://twitch.tv/aws) at 10 AM PDT.
-
-## Templates
-1. [HTTP API with JWT](./http-api/README.md)
-1. [Cognito](./cognito/README.md)
-1. [EventBridge](./eventbridge/README.md)
+Creates a custom bus on EventBrdge and demonstrates pushing custom events and triggering on rules.
