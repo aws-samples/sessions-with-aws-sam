@@ -116,6 +116,15 @@ Resources:
             Method: get
             ApiId: !Ref HttpApi
 
+  # $default route used as catchall
+  CatchAllLambdaFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: src/
+      Events:
+        RootGet:
+          Type: HttpApi
+
 Outputs:
   ApiEndpoint:
     Description: "HTTP API endpoint URL"

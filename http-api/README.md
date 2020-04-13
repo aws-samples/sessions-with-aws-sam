@@ -17,3 +17,26 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. -->
 # HTTP API with JWT
 
 Simple HTTP API SAM template with a non-authenticated endpoint and an authenticated endpoint using Amazon Cognito as the identity provider.
+
+## Resources
+
+### HttpApi
+Creates an HTTP API with a JWT authorizer
+
+### LambdaFunction
+Creates an open route
+
+### SingleAuthLambdaFunction
+Creates a route requiring authorization
+
+### AdminLambdaFunction
+Creates a route requiring authorization and a custom scope "Admins-{Audience}"
+
+### SULambdaFunction
+Creates a route requiring authorization and a custom scope "SU-{Audience}"
+
+### BothLambdaFunction
+Creates a route requiring authorization and a custom scope "Admins-{Audience}" or "SU-{Audience}"
+
+### CatchAllLambdaFunction
+Creates an unauthenticated $default route as a catchall
