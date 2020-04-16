@@ -1,0 +1,102 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: Kinesis Firehose
+
+Resources:
+  ## Raw data bucket
+  RawDataBucket:
+    Type: AWS::S3::Bucket
+
+  ProcessedDataBucket:
+    Type: AWS::S3::Bucket
+  
+  Firehose:
+    Type: AWS::KinesisFirehose::DeliveryStream
+    Properties:
+      DeliveryStreamType: DirectPut
+      ExtendedS3DestinationConfiguration:
+        BucketARN: !GetAtt ProcessedDataBucket.Arn
+        CompressionFormat: GZIP
+        RoleARN: !GetAtt FirehoseAccessRole.Arn
+        ProcessingConfiguration:
+          Enabled: true
+          Processors: # https://docs.aws.amazon.com/firehose/latest/dev/data-transformation.html
+            - Type: Lambda
+              Parameters:
+                - ParameterName: LambdaArn
+                  ParameterValue: !GetAtt ProcessFunction.Arn
+        BufferingHints:
+          IntervalInSeconds: 60
+          SizeInMBs: 1
+        S3BackupConfiguration:
+          BucketARN: !GetAtt RawDataBucket.Arn
+          CompressionFormat: GZIP
+          RoleARN: !GetAtt FirehoseAccessRole.Arn
+          BufferingHints:
+            IntervalInSeconds: 60
+            SizeInMBs: 1
+
+  ProcessFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Timeout: 60
+      CodeUri: src/
+      Handler: process.handler
+      Runtime: nodejs12.x
+      Policies:
+        - DynamoDBCrudPolicy: {TableName: !Ref DynamoTable}
+      Environment:
+        Variables:
+          TABLE_NAME: !Ref DynamoTable
+
+  FirehoseAccessRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: "Allow"
+            Principal:
+              Service: "firehose.amazonaws.com"
+            Action: 
+              - "sts:AssumeRole"
+      Policies:
+        - PolicyName: S3WritePolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              Action:
+                - s3:PutObject
+              Effect: Allow
+              Resource:
+                - !GetAtt RawDataBucket.Arn
+                - !Sub
+                  - ${Arn}/*
+                  - { Arn: !GetAtt RawDataBucket.Arn }
+                - !GetAtt ProcessedDataBucket.Arn
+                - !Sub
+                  - ${Arn}/*
+                  - { Arn: !GetAtt ProcessedDataBucket.Arn }
+        - PolicyName: LambdaInvokePolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              Action:
+                - lambda:InvokeFunction
+              Effect: Allow
+              Resource:
+                - !GetAtt ProcessFunction.Arn
+
+  DynamoTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      BillingMode: PAY_PER_REQUEST
+      KeySchema:
+        - AttributeName: id
+          KeyType: HASH
+      AttributeDefinitions:
+        - AttributeName: id
+          AttributeType: S
+      TimeToLiveSpecification:
+        AttributeName: ttl
+        Enabled: true

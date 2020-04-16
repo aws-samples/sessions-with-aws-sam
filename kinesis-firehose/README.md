@@ -14,12 +14,6 @@ HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTIO
 OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. -->
 
-# Sessions With SAM
+# Kinesis-Firehose
 
-This repo contains all the SAM templates created in the Twitch series #SessionsWithSAM. The show is every Thursday on [Twitch](https://twitch.tv/aws) at 10 AM PDT.
-
-## Templates
-1. [HTTP API with JWT](./http-api/README.md)
-1. [Cognito](./cognito/README.md)
-1. [EventBridge](./eventbridge/README.md)
-1. [Kinesis Firehose](./kinesis-firehose/README.md)
+Amazon Kinesis Firehose SAM template for ingesting website access logs from Amazon API Gateway. The data is stored in a raw bucket, processed by a Lambda function, and then stored in a processed bucket as well. During the processing period, the data is also pushed to an Amazon DynamoDB table for real-time analytics.

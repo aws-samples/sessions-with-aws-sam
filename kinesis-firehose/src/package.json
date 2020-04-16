@@ -1,0 +1,12 @@
+{
+  "name": "sample_app",
+  "version": "1.0.0",
+  "description": "Sample app for HTTP API",
+  "main": "app.js",
+  "repository": "https://github.com/singledigit/sam-template-examples/kinesis-firehose",
+  "author": "ejohnson",
+  "license": "MIT",
+  "dependencies": {},
+  "scripts": {},
+  "devDependencies": {}
+}
