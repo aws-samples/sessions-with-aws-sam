@@ -21,6 +21,7 @@ const TTL = 10
 exports.handler = async (event) => {
   let items = []
   let now = Date.now();
+  let output = []
 
   event.records.map(record => {
     let buff = new Buffer.from(record.data, 'base64');
@@ -38,6 +39,10 @@ exports.handler = async (event) => {
     }
 
     items.push(dc.put(params).promise())
+    output.push({
+      result: 'Ok', // Dropped | Ok | ProcessingFailed
+      ...record
+    })
   })
 
   try {
@@ -45,8 +50,7 @@ exports.handler = async (event) => {
   } catch (err) {
     console.log(err.message);
   }
-
   return {
-    records: event.records
+    records: output
   }
 }
