@@ -7,9 +7,26 @@ Resources:
   RawDataBucket:
     Type: AWS::S3::Bucket
 
+  ## Processed Data Bucket
   ProcessedDataBucket:
     Type: AWS::S3::Bucket
+
+  ## DynamoDB table for processed data
+  ProcessedDataTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      BillingMode: PAY_PER_REQUEST
+      KeySchema:
+        - AttributeName: id
+          KeyType: HASH
+      AttributeDefinitions:
+        - AttributeName: id
+          AttributeType: S
+      TimeToLiveSpecification:
+        AttributeName: ttl
+        Enabled: true
   
+  ## Ingest Firehose
   Firehose:
     Type: AWS::KinesisFirehose::DeliveryStream
     Properties:
@@ -20,7 +37,7 @@ Resources:
         RoleARN: !GetAtt FirehoseAccessRole.Arn
         ProcessingConfiguration:
           Enabled: true
-          Processors: # https://docs.aws.amazon.com/firehose/latest/dev/data-transformation.html
+          Processors:
             - Type: Lambda
               Parameters:
                 - ParameterName: LambdaArn
@@ -37,6 +54,7 @@ Resources:
             IntervalInSeconds: 60
             SizeInMBs: 1
 
+  ## Lambda function for processing data 
   ProcessFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -45,11 +63,12 @@ Resources:
       Handler: process.handler
       Runtime: nodejs12.x
       Policies:
-        - DynamoDBCrudPolicy: {TableName: !Ref DynamoTable}
+        - DynamoDBCrudPolicy: {TableName: !Ref ProcessedDataTable}
       Environment:
         Variables:
-          TABLE_NAME: !Ref DynamoTable
+          TABLE_NAME: !Ref ProcessedDataTable
 
+  ## Firehose role for access
   FirehoseAccessRole:
     Type: AWS::IAM::Role
     Properties:
@@ -87,17 +106,3 @@ Resources:
               Effect: Allow
               Resource:
                 - !GetAtt ProcessFunction.Arn
-
-  DynamoTable:
-    Type: AWS::DynamoDB::Table
-    Properties:
-      BillingMode: PAY_PER_REQUEST
-      KeySchema:
-        - AttributeName: id
-          KeyType: HASH
-      AttributeDefinitions:
-        - AttributeName: id
-          AttributeType: S
-      TimeToLiveSpecification:
-        AttributeName: ttl
-        Enabled: true
