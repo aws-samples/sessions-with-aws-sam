@@ -28,6 +28,7 @@ Resources:
         BufferingHints:
           IntervalInSeconds: 60
           SizeInMBs: 1
+        S3BackupMode: Enabled
         S3BackupConfiguration:
           BucketARN: !GetAtt RawDataBucket.Arn
           CompressionFormat: GZIP
