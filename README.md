@@ -22,4 +22,4 @@ This repo contains all the SAM templates created in the Twitch series #SessionsW
 1. [HTTP API with JWT](./http-api/README.md)
 1. [Cognito](./cognito/README.md)
 1. [EventBridge](./eventbridge/README.md)
-1. [Kinesis Firehose](./kinesis-firehose/README.md)
+1. [Kinesis Firehose and Kinesis Data Analytics](./kinesis-firehose/README.md)

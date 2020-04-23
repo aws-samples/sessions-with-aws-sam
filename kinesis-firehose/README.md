@@ -14,6 +14,35 @@ HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTIO
 OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. -->
 
-# Kinesis-Firehose
+# Kinesis-Firehose and Kinesis Analytics
 
 Amazon Kinesis Firehose SAM template for ingesting website access logs from Amazon API Gateway. The data is stored in a raw bucket, processed by a Lambda function, and then stored in a processed bucket as well. During the processing period, the data is also pushed to an Amazon DynamoDB table for real-time analytics.
+
+## Resources according to data flow
+
+### Firehose
+This is the initial delivery stream to ingest large amounts of data
+
+### RawDataBucket
+This is the first step for the data. Raw data coming in to the Kinesis Dilvery Stream (Firehose) is first saved here in the format it comes in.
+
+### ProcessFunction
+After saving the data to the RawDataBucket, Kinesis then triggers this Lambda for any custom processing
+
+### ProcessedDataTable
+The process function pulls data and sends it to the ProcesseddataTable for immediate analytics
+
+### ProcessedDataBucket
+This bucket stors the data in it's processed state
+
+### KinesisAnalyticsApp
+Data is then sent to the KinesisAnalyticsApp for more in depth analysis and reporting
+
+### KinesisAnalyticsOutput
+This output directs analyzed data from Kinesis Analytics to the Count Function
+
+### CountFunction
+Count function takes the analyzed data and pushes it to the CountTable
+
+### CountTable
+Stores the latest top vied links as a trend

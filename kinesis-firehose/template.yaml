@@ -1,17 +1,21 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
-Description: Kinesis Firehose
+Description: Kinesis
 
 Resources:
   ## Raw data bucket
   RawDataBucket:
     Type: AWS::S3::Bucket
 
-  ## Processed Data Bucket
+  ## Processed Data
   ProcessedDataBucket:
     Type: AWS::S3::Bucket
 
-  ## DynamoDB table for processed data
+  ## Link count table
+  CountTable:
+    Type: AWS::Serverless::SimpleTable
+
+  # Raw data tale
   ProcessedDataTable:
     Type: AWS::DynamoDB::Table
     Properties:
@@ -25,7 +29,7 @@ Resources:
       TimeToLiveSpecification:
         AttributeName: ttl
         Enabled: true
-  
+
   ## Ingest Firehose
   Firehose:
     Type: AWS::KinesisFirehose::DeliveryStream
@@ -54,11 +58,11 @@ Resources:
             IntervalInSeconds: 60
             SizeInMBs: 1
 
-  ## Lambda function for processing data 
+  # Initial process function
   ProcessFunction:
     Type: AWS::Serverless::Function
     Properties:
-      Timeout: 60
+      Timeout: 180
       CodeUri: src/
       Handler: process.handler
       Runtime: nodejs12.x
@@ -68,7 +72,66 @@ Resources:
         Variables:
           TABLE_NAME: !Ref ProcessedDataTable
 
-  ## Firehose role for access
+  # Link count function
+  CountFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Timeout: 180
+      CodeUri: src/
+      Handler: count.handler
+      Runtime: nodejs12.x
+      Policies:
+        - DynamoDBCrudPolicy: {TableName: !Ref CountTable}
+      Environment:
+        Variables:
+          TABLE_NAME: !Ref CountTable
+
+  # Kinesis Data Analytics Application
+  KinesisAnalyticsApp:
+    Type: AWS::KinesisAnalytics::Application
+    Properties:
+      ApplicationCode: >
+        CREATE OR REPLACE STREAM "LINK_STREAM" ("resourcePath" varchar(16), link_count INTEGER);
+        CREATE OR REPLACE PUMP "STREAM_PUMP" AS INSERT INTO "LINK_STREAM"
+        SELECT STREAM "resourcePath", COUNT(*) AS link_count
+            FROM "SESSIONS_STREAM_001"
+            GROUP BY "resourcePath", STEP("SESSIONS_STREAM_001".ROWTIME BY INTERVAL '10' SECOND);
+      Inputs:
+        - InputSchema:
+            RecordColumns: 
+              - Name: requestId
+                Mapping: $.requestId
+                SqlType: bigint
+              - Name: ip
+                Mapping: $.ip
+                SqlType: varchar(16)
+              - Name: status
+                Mapping: $.status
+                SqlType: varchar(8)
+              - Name: resourcePath
+                Mapping: $.resourcePath
+                SqlType: varchar(16)
+            RecordFormat:
+              RecordFormatType: JSON
+          KinesisFirehoseInput:
+            ResourceARN: !GetAtt Firehose.Arn
+            RoleARN: !GetAtt KinesisAnalyticsAccessRole.Arn
+          NamePrefix: SESSIONS_STREAM
+  
+  # Output for Kinesis Data Analytics application
+  KinesisAnalyticsOutput:
+    Type: AWS::KinesisAnalytics::ApplicationOutput
+    Properties: 
+      ApplicationName: !Ref KinesisAnalyticsApp
+      Output:
+        DestinationSchema:
+          RecordFormatType: JSON
+        LambdaOutput:
+          ResourceARN: !GetAtt CountFunction.Arn
+          RoleARN: !GetAtt KinesisAnalyticsAccessRole.Arn
+        Name: LINK_STREAM
+
+  # Access role for Firehose
   FirehoseAccessRole:
     Type: AWS::IAM::Role
     Properties:
@@ -106,3 +169,44 @@ Resources:
               Effect: Allow
               Resource:
                 - !GetAtt ProcessFunction.Arn
+
+  # Access role for Kinesis Data Analytics
+  KinesisAnalyticsAccessRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: "Allow"
+            Principal:
+              Service: "kinesisanalytics.amazonaws.com"
+            Action: 
+              - "sts:AssumeRole"
+      Policies:
+        - PolicyName: KinesisAccessPolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              Action:
+                - firehose:DescribeDeliveryStream
+                - firehose:Get*
+                - kinesis:Describe*
+                - kinesis:Get*
+                - kinesis:List*
+                - kinesis:Put*
+              Effect: Allow
+              Resource:
+                - !GetAtt Firehose.Arn
+        - PolicyName: LambdaAccessPolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              Action:
+                - lambda:InvokeFunction
+                - lambda:Get*
+              Effect: Allow
+              Resource:
+                - !GetAtt CountFunction.Arn
+                - !Sub
+                  - ${Func}:$LATEST
+                  - { Func: !GetAtt CountFunction.Arn }
