@@ -1,0 +1,77 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: SQS
+
+Globals:
+  Function:
+    Timeout: 5
+    CodeUri: src/
+    Runtime: nodejs12.x
+
+Resources:
+  DeadLetter:
+    Type: AWS::SQS::Queue
+
+  RawQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      DelaySeconds: 0
+      # FifoQueue: true
+      # QueueName: myname.fifo
+      # ContentBasedDeduplication: true
+      # KmsDataKeyReusePeriodSeconds: 5
+      # KmsMasterKeyId: /aws/kms/sqs
+      # MaximumMessageSize: 262,144
+      # MessageRetentionPeriod: 1209600
+      # ReceiveMessageWaitTimeSeconds: 10
+      RedrivePolicy:
+        deadLetterTargetArn : !GetAtt DeadLetter.Arn
+        maxReceiveCount : 4
+      Tags: 
+        - Key: Series
+          Value: SWS
+      VisibilityTimeout: 120
+  
+  RawQueuePolicy:
+    Type: AWS::SQS::QueuePolicy
+    Properties: 
+      PolicyDocument:
+        Id: Policy1588221050082
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Action:
+          - sqs:SendMessage
+          Resource: !GetAtt RawQueue.Arn
+          Principal:
+            AWS:
+              #- '410646685895'
+              - arn:aws:iam::410646685895:user/tester
+          Condition:
+            DateGreaterThan:
+              aws:CurrentTime: 2020-04-28T12:00Z
+            DateLessThan:
+              aws:CurrentTime: 2020-05-01T12:00Z
+      Queues: 
+        - !Ref RawQueue
+
+  TriggeredFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: app.lambdaHandler
+      Events:
+        SQSEvent:
+          Type: SQS
+          Properties:
+            Queue: !GetAtt RawQueue.Arn
+            BatchSize: 10
+            Enabled: true
+
+Outputs:
+  RawSqsUrl:
+    Description: URL of the SQS Queue
+    Value: !Ref RawQueue
+
+  DeadLetterUrl:
+    Description: URL of the SQS Queue
+    Value: !Ref DeadLetter
