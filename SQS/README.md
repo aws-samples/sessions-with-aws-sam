@@ -17,3 +17,5 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. -->
 # SQS
 
 Builds an SQS queue with a queue policy sets the queue as an eventsource for a Lambda
+
+*be sure to update the principals in the SAM template before deploying*

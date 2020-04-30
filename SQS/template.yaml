@@ -44,9 +44,10 @@ Resources:
           - sqs:SendMessage
           Resource: !GetAtt RawQueue.Arn
           Principal:
+            ### Update this with your desired principals ###
             AWS:
-              #- '410646685895'
-              - arn:aws:iam::410646685895:user/tester
+              - [desired account number]
+              - [desired user or role ARN]
           Condition:
             DateGreaterThan:
               aws:CurrentTime: 2020-04-28T12:00Z
