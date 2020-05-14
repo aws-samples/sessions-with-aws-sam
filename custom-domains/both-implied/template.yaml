@@ -1,0 +1,96 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: Custom Domain
+
+Parameters:
+  DomainName:
+    Type: String
+    Description: Domian name for api
+  ZoneId:
+    Type: String
+    Description: Zone ID if exists. If not leave as none.
+    Default: none
+  CertArn:
+    Type: String
+    Description: Certificate ARN if exists. If not leave as none.
+    Default: none
+
+Conditions:
+  CreateZone:
+    !Equals [!Ref ZoneId, 'none']
+  CreateCert:
+    !Equals [!Ref CertArn, 'none']
+
+Resources:
+  GeneratedZone: # If a Zone ID is not passed in the parameteres, then a new zone is created for the domain
+    Type: AWS::Route53::HostedZone
+    Condition: CreateZone
+    Properties: 
+      Name: !Ref DomainName
+
+  GeneratedCert: # If a Certificate ARN is not passed in the parameters, then a new cert is created and will required validation during the deploy
+    Type: AWS::CertificateManager::Certificate
+    Condition: CreateCert
+    Properties: 
+      DomainName: !Ref DomainName
+      ValidationMethod: DNS
+
+  HttpApiGateway: # Creates a HTTP API endpoint under the customm domian
+    Type: AWS::Serverless::HttpApi
+    Properties:
+      Domain:
+        DomainName: !Ref DomainName
+        CertificateArn: !If [CreateCert, !Ref GeneratedCert, !Ref CertArn]
+        Route53:
+          HostedZoneId: !If [CreateZone, !Ref GeneratedZone, !Ref ZoneId]
+        BasePath:
+          - http
+
+  HttpApiFunction: # Integration Lambda function for the HTTP API 
+    Type: AWS::Serverless::Function
+    Properties:
+      InlineCode: exports.handler = async (event) => JSON.stringify(event)
+      Handler: index.handler
+      Runtime: nodejs12.x
+      Events:
+        FetchHttp:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref HttpApiGateway
+            Method: GET
+            Path: /
+
+  RestApiGateway: # Creates a Rest API endpoint under the customm domian
+    Type: AWS::Serverless::Api
+    Properties:
+      StageName: Prod
+
+  RestApiMapping: #Create a mapping to a REST API (V1)
+    Type: AWS::ApiGatewayV2::ApiMapping
+    DependsOn: HttpApiGatewayhttpApiMapping # Critical to avoid a race condition
+    Properties: 
+      ApiId: !Ref RestApiGateway
+      ApiMappingKey: rest
+      DomainName: !Ref DomainName
+      Stage: !Ref RestApiGatewayProdStage ## = {Logicalname} + {StageName} + Stage
+
+  RestApiFunction:  # Integration Lambda function for the Rest API
+    Type: AWS::Serverless::Function
+    Properties:
+      InlineCode: |
+        exports.handler = async (event) => {
+          const response = {
+            statusCode: 200,
+            body: JSON.stringify('Hello from Lambda!'),
+          };
+          return response;
+        };
+      Handler: index.handler
+      Runtime: nodejs12.x
+      Events:
+        FetchRest:
+          Type: Api
+          Properties:
+            RestApiId: !Ref RestApiGateway
+            Method: GET
+            Path: /

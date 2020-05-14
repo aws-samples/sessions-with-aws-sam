@@ -1,0 +1,113 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: Custom Domain
+
+Parameters:
+  DomainName:
+    Type: String
+    Description: Domian name for api
+  ZoneId:
+    Type: String
+    Description: Zone ID if exists. If not leave as none.
+    Default: none
+  CertArn:
+    Type: String
+    Description: Certificate ARN if exists. If not leave as none.
+    Default: none
+
+Conditions:
+  CreateZone:
+    !Equals [!Ref ZoneId, 'none']
+  CreateCert:
+    !Equals [!Ref CertArn, 'none']
+
+Resources:
+  GeneratedZone: # If a Zone ID is not passed in the parameteres, then a new zone is created for the domain
+    Type: AWS::Route53::HostedZone
+    Condition: CreateZone
+    Properties: 
+      Name: !Ref DomainName
+
+  GeneratedCert: # If a Certificate ARN is not passed in the parameters, then a new cert is created and will required validation during the deploy
+    Type: AWS::CertificateManager::Certificate
+    Condition: CreateCert
+    Properties: 
+      DomainName: !Ref DomainName
+      ValidationMethod: DNS
+
+  CustomDomainName: # Creates the domain name only
+    Type: AWS::ApiGatewayV2::DomainName
+    Properties: 
+      DomainName: !Ref DomainName
+      DomainNameConfigurations: 
+        - EndpointType: REGIONAL
+          CertificateArn: !If [CreateCert, !Ref GeneratedCert, !Ref CertArn]
+
+  HttpApiMapping: # Create a mapping to an HTTP API (V2)
+    Type: AWS::ApiGatewayV2::ApiMapping
+    Properties: 
+      ApiId: !Ref HttpApiGateway
+      ApiMappingKey: http
+      DomainName: !Ref CustomDomainName
+      Stage: !Ref HttpApiGatewayApiGatewayDefaultStage ## = {LogicalName} + ApiGateway + {StageName} + Stage
+
+  RestApiMapping: #Create a maooing to a REST API (V1)
+    Type: AWS::ApiGatewayV2::ApiMapping
+    Properties: 
+      ApiId: !Ref RestApiGateway
+      ApiMappingKey: rest
+      DomainName: !Ref CustomDomainName
+      Stage: !Ref RestApiGatewayProdStage ## = {Logicalname} + {StageName} + Stage
+
+  HttpApiGateway: # Creates a HTTP API endpoint under the customm domian
+    Type: AWS::Serverless::HttpApi
+
+  RestApiGateway: # Creates a Rest API endpoint under the customm domian
+    Type: AWS::Serverless::Api
+    Properties:
+      StageName: Prod
+
+  HttpApiFunction: # Integration Lambda function for the both APIs 
+    Type: AWS::Serverless::Function
+    Properties:
+      InlineCode: exports.handler = async (event) => JSON.stringify(event)
+      Handler: index.handler
+      Runtime: nodejs12.x
+      Events:
+        FetchHttpApi:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref HttpApiGateway
+            Method: GET
+            Path: /
+
+  RestApiFunction:  # Integration Lambda function for the Rest API
+    Type: AWS::Serverless::Function
+    Properties:
+      InlineCode: |
+        exports.handler = async (event) => {
+          const response = {
+            statusCode: 200,
+            body: JSON.stringify('Hello from Lambda!'),
+          };
+          return response;
+        };
+      Handler: index.handler
+      Runtime: nodejs12.x
+      Events:
+        FetchRest:
+          Type: Api
+          Properties:
+            RestApiId: !Ref RestApiGateway
+            Method: GET
+            Path: /
+
+  RecordSet: # Creates a record set in the hosted zone for custom domain to point at the APICustomDomain alias
+    Type: AWS::Route53::RecordSet
+    Properties:
+      Name: !Ref DomainName
+      HostedZoneId: !If [CreateZone, !Ref GeneratedZone, !Ref ZoneId]
+      AliasTarget: 
+        DNSName: !GetAtt CustomDomainName.RegionalDomainName
+        HostedZoneId: !GetAtt CustomDomainName.RegionalHostedZoneId
+      Type: A
