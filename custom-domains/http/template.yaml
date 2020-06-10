@@ -50,6 +50,7 @@ Resources:
       InlineCode: exports.handler = async (event) => JSON.stringify(event)
       Handler: index.handler
       Runtime: nodejs12.x
+      Timeout: 30
       Events:
         FetchHttp:
           Type: HttpApi

@@ -15,6 +15,6 @@
 // SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 exports.lambdaHandler = async (event) => {
-
-  return {lambda: "one", preTest: true, postTest: true, code: 1}
+  console.log(JSON.stringify(event))
+  return JSON.stringify(event)
 };

@@ -109,16 +109,16 @@ Resources:
       UserPoolId: !Ref UserPool
     
 Outputs:
-  UserPoolId:
-    Description: "User pool ID"
-    Value: !Ref UserPool
-    Export:
-      Name: !Sub ${AppName}:UserPoolId
+    UserPoolId:
+      Description: "User pool ID"
+      Value: !Ref UserPool
+      Export:
+        Name: !Sub ${AppName}:UserPoolId
 
-  UserPoolClientId:
-    Description: "Application client ID"
-    Value: !Ref UserPoolClient
+    UserPoolClientId:
+      Description: "Application client ID"
+      Value: !Ref UserPoolClient
 
-  AuthUrl:
-    Description: "URL used for authentication"
-    Value: !Sub https://${UserPoolDomain}.auth.${AWS::Region}.amazoncognito.com
+    AuthUrl:
+      Description: "URL used for authentication"
+      Value: !Sub https://${UserPoolDomain}.auth.${AWS::Region}.amazoncognito.com
