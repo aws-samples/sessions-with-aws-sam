@@ -21,11 +21,12 @@ This repo contains all the SAM templates created in the Twitch series #SessionsW
 ## [Video series](https://slip.link/sws-vids)
 
 ## Templates
-1. [HTTP API with JWT](./http-api/README.md)
-1. [Cognito](./cognito/README.md)
-1. [EventBridge](./eventbridge/README.md)
-1. [Kinesis Firehose](./kinesis-firehose/README.md)
-1. [Kinesis Data Analytics](./kinesis-firehose/README.md)
-1. [SQS](./sqs/README.md)
-1. [Safe Deploys](./safe-deploys/README.md)
-1. [Custom Domains](./custom-domains/README.md)
+1. [HTTP API with JWT](./http-api/README.md) *([YouTube Video](https://youtu.be/klOScYEojzY))*
+1. [Cognito](./cognito/README.md) *([YouTube Video](https://youtu.be/nBtWCjKd72M))*
+1. [EventBridge](./eventbridge/README.md) *([YouTube Video](https://youtu.be/73R02KufLac))*
+1. [Kinesis Firehose](./kinesis-firehose/README.md) *([YouTube Video](https://youtu.be/jdTBtaxs0hA))*
+1. [Kinesis Data Analytics](./kinesis-firehose/README.md) . [Kinesis Firehose](./kinesis-firehose/README.md) *([YouTube Video](https://youtu.be/ce0v-q9EVTQ))*
+1. [SQS](./sqs/README.md) *([YouTube Video](https://youtu.be/q2rbHMyJBDY))*
+1. [Safe Deploys](./safe-deploys/README.md) *([YouTube Video](https://youtu.be/RE4r_6edaXc))*
+1. [Custom Domains](./custom-domains/README.md) *([YouTube Video](https://youtu.be/4uXEGNKU5NI))*
+1. [HTTP API Access Logging](./http-api-logging/README.md)
