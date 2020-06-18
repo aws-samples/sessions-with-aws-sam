@@ -1,0 +1,49 @@
+{
+    "Comment": "A state machine that gathers devrel analytics.",
+    "StartAt": "Launch nested workflows",
+    "States": {
+        "Launch nested workflows": {
+            "Type": "Parallel",
+            "Branches": [
+                {
+                    "StartAt": "Gather Stack Overflow analytics",
+                    "States": {
+                        "Gather Stack Overflow analytics": {
+                            "Type": "Task",
+                            "Resource": "arn:aws:states:::states:startExecution.sync:2",
+                            "Parameters": {
+                                "StateMachineArn": "${StackOverflowWorkflowArn}"
+                            },
+                            "End": true
+                        }
+                    }
+                },
+                {
+                    "StartAt": "Gather Twitch analytics",
+                    "States": {
+                        "Gather Twitch analytics": {
+                            "Type": "Task",
+                            "Resource": "arn:aws:states:::states:startExecution.sync:2",
+                            "Parameters": {
+                                "StateMachineArn": "${TwitchWorkflowArn}"
+                            },
+                            "End": true
+                        }
+                    }
+                }
+            ],
+            "Next": "Send update notification"
+        },
+        "Send update notification": {
+            "Type": "Task",
+            "Resource": "arn:aws:states:::sns:publish",
+            "Parameters": {
+                "TopicArn": "${SNSTopicArn}",
+                "Message": {
+                    "Input": "Successfully updated analytics!"
+                }
+            },
+            "End": true
+        }
+    }
+}
