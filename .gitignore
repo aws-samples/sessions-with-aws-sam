@@ -1,2 +1,3 @@
 *.toml
 node_modules
+.aws-sam

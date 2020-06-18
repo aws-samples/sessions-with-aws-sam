@@ -1,0 +1,30 @@
+{
+    "Comment": "A Hello World example demonstrating various state types of the Amazon States Language",
+    "StartAt": "Pass",
+    "States": {
+        "Pass": {
+            "Comment": "A Pass state passes its input to its output, without performing work. Pass states are useful when constructing and debugging state machines.",
+            "Type": "Pass",
+            "Next": "Store Analytics"
+        },
+        "Store Analytics": {
+            "Type": "Task",
+            "Resource": "${DDBPutItem}",
+            "Parameters": {
+                "TableName": "${DDBTable}",
+                "Item": {
+                    "Id": {
+                        "S.$": "$$.Execution.Id"
+                    },
+                    "Platform": {
+                        "S": "Stack Overflow"
+                    },
+                    "Timestamp": {
+                        "S.$": "$$.State.EnteredTime"
+                    }
+                }
+            },
+            "End": true
+        }
+    }
+}
