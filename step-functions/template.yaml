@@ -1,0 +1,117 @@
+# Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+# SPDX-License-Identifier: MIT-0
+
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  step-functions
+
+  Sample SAM Template for step-functions
+
+Resources:
+  AnalyticsStateMachine:
+    Type: AWS::Serverless::StateMachine # More info about State Machine Resource: https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/sam-resource-statemachine.html
+    Properties:
+      DefinitionUri: statemachine/analytics.asl.json
+      DefinitionSubstitutions:
+        SNSTopicArn: !Ref AnalyticsTopic
+        StackOverflowWorkflowArn: !Ref GatherStackOverflowMetrics
+        TwitchWorkflowArn: !Ref GatherTwitchMetrics
+      Events:
+        DailySchedule:
+          Type: Schedule # More info about Schedule Event Source: https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/sam-property-statemachine-schedule.html
+          Properties:
+            Description: Schedule to run the analytics state machine every day
+            Enabled: true # This schedule is disabled by default to avoid incurring charges.
+            Schedule: "rate(1 day)"
+      Role: !GetAtt AnalyticsWorkflowRole.Arn
+
+  GatherStackOverflowMetrics:
+    Type: AWS::Serverless::StateMachine
+    Properties:
+      DefinitionUri: statemachine/stackoverflow.asl.json
+      DefinitionSubstitutions:
+        DDBPutItem: !Sub arn:${AWS::Partition}:states:::dynamodb:putItem
+        DDBTable: !Ref AnalyticsTable
+      Type: EXPRESS
+      Policies: # Find out more about SAM policy templates: https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/serverless-policy-templates.html
+        - DynamoDBWritePolicy:
+            TableName: !Ref AnalyticsTable
+
+  GatherTwitchMetrics:
+    Type: AWS::Serverless::StateMachine
+    Properties:
+      DefinitionUri: statemachine/twitch.asl.json
+      DefinitionSubstitutions:
+        DDBPutItem: !Sub arn:${AWS::Partition}:states:::dynamodb:putItem
+        DDBTable: !Ref AnalyticsTable
+      Type: EXPRESS
+      Policies:
+        - DynamoDBWritePolicy:
+            TableName: !Ref AnalyticsTable
+
+  AnalyticsTable:
+    Type: AWS::Serverless::SimpleTable # More info about SimpleTable Resource: https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/sam-resource-simpletable.html
+    Properties:
+      PrimaryKey:
+        Name: Id
+        Type: String
+      ProvisionedThroughput:
+        ReadCapacityUnits: 1
+        WriteCapacityUnits: 1
+
+  AnalyticsTopic:
+    Type: AWS::SNS::Topic
+
+  ##############################################################################
+  # Parent IAM role
+  ##############################################################################
+  AnalyticsWorkflowRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - !Sub states.${AWS::Region}.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: ParentWorkflowExecutionPolicy
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              # The following stanzas are required to invoke nested workflows
+              - Effect: Allow
+                Action:
+                  - states:StartExecution
+                Resource:
+                  - !Ref GatherStackOverflowMetrics
+                  - !Ref GatherTwitchMetrics
+              # The following additional stanzas are required for .sync invocations of nested workflows
+              - Effect: Allow
+                Action:
+                  - states:DescribeExecution
+                  - states:StopExecution
+                Resource:
+                  - !Ref GatherStackOverflowMetrics
+                  - !Ref GatherTwitchMetrics
+              - Effect: Allow
+                Action:
+                  - events:PutTargets
+                  - events:PutRule
+                  - events:DescribeRule
+                Resource:
+                  - !Sub "arn:aws:events:${AWS::Region}:${AWS::AccountId}:rule/StepFunctionsGetEventsForStepFunctionsExecutionRule"
+              # The following stanzas are required to publish messages to SNS topics
+              - Effect: Allow
+                Action:
+                  - sns:Publish
+                Resource:
+                  - !Ref AnalyticsTopic
+
+Outputs:
+  AnalyticsStateMachineArn:
+    Description: "Analytics state machine ARN"
+    Value: !Ref AnalyticsStateMachine
