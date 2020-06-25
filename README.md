@@ -30,3 +30,4 @@ This repo contains all the SAM templates created in the Twitch series #SessionsW
 1. [Safe Deploys](./safe-deploys/README.md) *([YouTube Video](https://youtu.be/RE4r_6edaXc))*
 1. [Custom Domains](./custom-domains/README.md) *([YouTube Video](https://youtu.be/4uXEGNKU5NI))*
 1. [HTTP API Access Logging](./http-api-logging/README.md)
+1. [Lambda and EFS](https://github.com/aws-samples/aws-lambda-efs-samples) *([YouTube Video](https://youtu.be/up1op216trk))*
