@@ -1,0 +1,35 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: HTTP API
+
+Resources:
+  SwiftApi: # Match package name in package.swift for Lambda function
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: swift.bootstrap
+      Runtime: provided
+      MemorySize: 512
+      CodeUri: SwiftApi/
+      Events:
+        ApiTrigger:
+          Type: HttpApi
+          Properties:
+            Path: /
+            Method: get
+    Metadata:
+      BuildMethod: makefile
+
+  Squared:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: swift.bootstrap
+      Runtime: provided
+      MemorySize: 512
+      CodeUri: Squared/
+    Metadata:
+      BuildMethod: makefile
+
+Outputs:
+  ApiEndpoint:
+    Description: "HTTP API endpoint URL"
+    Value: !Sub "https://${ServerlessHttpApi}.execute-api.${AWS::Region}.amazonaws.com"
