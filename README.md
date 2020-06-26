@@ -53,13 +53,13 @@ Continuing from session 4, this session adds a Kinesis Data Analytics applicatio
 
 In this session with SAM we build an AWS SAM template for creating an Amazon SQS queue. We also connect the queue as an event source for a Lambda function. Finally we create a queue policy to allow cross account posting to the queue and show how to test it in Postman.
 
-[Code](./sqs/README.md) | [Video](https://youtu.be/q2rbHMyJBDY)
+[Code](./SQS/README.md) | [Video](https://youtu.be/q2rbHMyJBDY)
 
 ## Creating safe linear and canary deploys for Lambda functions
 
 In this session I show how to use SAM to create safe deployments for Lambda functions in serverless applications. I demonstrate linear and canary deployments and how to configure pre and post traffic tests.
 
-[Code](./safe-deploys/README.md) | [Video](https://youtu.be/RE4r_6edaXc)
+[Code](./safe-deploy/README.md) | [Video](https://youtu.be/RE4r_6edaXc)
 
 ## SAM templates for HTTP API and REST API custom domains
 
