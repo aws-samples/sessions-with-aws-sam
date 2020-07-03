@@ -1,30 +1,27 @@
 PRODUCT_NAME = SwiftApi
 DEPS = libswiftCore.so libswiftGlibc.so libswiftDispatch.so libdispatch.so libBlocksRuntime.so libFoundation.so libicui18nswift.so.65 libicuucswift.so.65 libicudataswift.so.65
 
-############################ You "shouldn't" need to modify below this line ############################
-
+#################### Do not change below this line ##########################
 DOCKER_NAME = swift-builder-$(PRODUCT_NAME)
-DOCKER_COMMAND = docker
-TARGET = `pwd`/.aws-sam/$(PRODUCT_NAME)-build/release/$(PRODUCT_NAME)
+TARGET_PATH = .sam-build
+
+build: ARTIFACTS_DIR = ../.aws-sam/build/$(PRODUCT_NAME)
+build: TARGET_PATH = .build
+build: build-$(PRODUCT_NAME)
+
 
 build-$(PRODUCT_NAME):
+	# Create artifacts direxctory if not exists
+	mkdir -p $(ARTIFACTS_DIR)
 
-	# Build package
-	$(DOCKER_COMMAND) run --name $(DOCKER_NAME) -v `pwd`:`pwd` -w `pwd` -i -t swift-lambda-builder swift build $(PACKAGE_PATH) --product $(PRODUCT_NAME) -c release --build-path ./.aws-sam/$(PRODUCT_NAME)-build
+	# Run swift build via AL docker container
+	docker run --name $(DOCKER_NAME) -v `pwd`:`pwd` -w `pwd` -i -t swift-lambda-builder swift build --product $(PRODUCT_NAME) -c release --build-path $(TARGET_PATH)
 
-	# Copies bootstrap file to output
-	cp $(TARGET) $(ARTIFACTS_DIR)/bootstrap
-
-	# # Copy dependencies libs
+	# copt app dependencies
 	$(foreach dep,$(DEPS),docker cp -L $(DOCKER_NAME):/usr/lib/swift/linux/$(dep) $(ARTIFACTS_DIR);)
 
-	# remove docker
+	# delete docker image
 	docker rm -f $(DOCKER_NAME)
-	
 
-build: ARTIFACTS_DIR  = ../.aws-sam/build/$(PRODUCT_NAME)
-build: DOCKER_COMMAND = cd ../ && docker
-build: PACKAGE_PATH = --package-path ./$(PRODUCT_NAME)
-build: TARGET = ../.aws-sam/$(PRODUCT_NAME)-build/release/$(PRODUCT_NAME)
-build: build-$(PRODUCT_NAME)
-	
+	# copy binary
+	cp ./.build/release/$(PRODUCT_NAME) $(ARTIFACTS_DIR)/bootstrap
