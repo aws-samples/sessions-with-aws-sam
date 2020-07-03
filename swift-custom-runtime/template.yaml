@@ -19,15 +19,15 @@ Resources:
     Metadata:
       BuildMethod: makefile
 
-  # Squared:
-  #   Type: AWS::Serverless::Function
-  #   Properties:
-  #     Handler: swift.bootstrap
-  #     Runtime: provided
-  #     MemorySize: 512
-  #     CodeUri: Squared/
-  #   Metadata:
-  #     BuildMethod: makefile
+  Squared:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: swift.bootstrap
+      Runtime: provided
+      MemorySize: 512
+      CodeUri: Squared/
+    Metadata:
+      BuildMethod: makefile
 
 Outputs:
   ApiEndpoint:
