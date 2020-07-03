@@ -2,13 +2,17 @@ AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
 Description: Swift Application
 
+Globals:
+  Function:
+    Timeout: 10
+    Handler: swift.bootstrap
+    Runtime: provided
+    MemorySize: 512
+
 Resources:
   SwiftApi: # Match package name in package.swift for Lambda function
     Type: AWS::Serverless::Function
     Properties:
-      Handler: swift.bootstrap
-      Runtime: provided
-      MemorySize: 512
       CodeUri: SwiftApi/
       Events:
         ApiTrigger:
@@ -22,9 +26,6 @@ Resources:
   Squared:
     Type: AWS::Serverless::Function
     Properties:
-      Handler: swift.bootstrap
-      Runtime: provided
-      MemorySize: 512
       CodeUri: Squared/
     Metadata:
       BuildMethod: makefile
