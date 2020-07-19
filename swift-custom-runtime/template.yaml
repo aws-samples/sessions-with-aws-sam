@@ -5,18 +5,18 @@ Description: Swift Application
 Globals:
   Function:
     Timeout: 10
+    CodeUri: .
     Handler: swift.bootstrap
     Runtime: provided
     MemorySize: 512
 
 Resources:
-  SwiftApi: # Match package name in package.swift for Lambda function
+  SwiftApi:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: SwiftApi/
       Events:
         ApiTrigger:
-          Type: HttpApi
+          Type: Api
           Properties:
             Path: /
             Method: get
@@ -25,8 +25,7 @@ Resources:
 
   Squared:
     Type: AWS::Serverless::Function
-    Properties:
-      CodeUri: Squared/
+    Properties: {}
     Metadata:
       BuildMethod: makefile
 
