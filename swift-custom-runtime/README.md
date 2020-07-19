@@ -25,20 +25,24 @@ You will not need Swift installed locally as we will use an Amazon Linux contain
 
 ## Setup - Create docker image for compiling
 ```
-docker build -t swift-lambda-builder .
+docker build -f Dockerfile . -t builder
 ```
 
 ## Build options
 
-1. `sam build` from the root directory will compile each function and prepare for testing and deployment. *Note: that this will rebuild all functions.* [Docs](https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/sam-cli-command-reference-sam-build.html)
-1. `make build` from within the function folder, Squared or SwiftApi, will build the corresponding Lambda function only. *Note: this will update changed code only*
+1. `sam build` from the root directory will compile each function and prepare for testing and deployment. [Docs](https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/sam-cli-command-reference-sam-build.html)
+1. `make build-FunctionName` will build JUST the single Lambda function. 
 
 ## Test Local
 Run these commands from the root of the project.
 
-### SwiftApi: SAM local doesn't support start-api for HTTP API as of yet. So you can invoke the Lambda with an HTTP API event.
+### SwiftApi:
 ```
-sam local invoke SwiftApi -e api-event.json
+sam local start-api
+```
+or
+```
+sam local invoke SwiftApi -e events/api-event.json
 ```
 
 ### Squared
