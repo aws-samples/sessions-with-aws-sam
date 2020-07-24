@@ -47,7 +47,7 @@ Resources:
           Principal: '*'
           Action:
           - sqs:SendMessage
-          Resource: arn:aws:sqs:us-west-2:088483494489:http-sqs-RawQueue-A1NWA1ZJXXW2
+          Resource: !GetAtt RawQueue.Arn
       Queues: 
         - !Ref RawQueue
 
