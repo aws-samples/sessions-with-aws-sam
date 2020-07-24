@@ -44,9 +44,7 @@ Resources:
         Version: '2012-10-17'
         Statement:
         - Effect: Allow
-          Principal:
-            AWS:
-              - '088483494489'
+          Principal: '*'
           Action:
           - sqs:SendMessage
           Resource: arn:aws:sqs:us-west-2:088483494489:http-sqs-RawQueue-A1NWA1ZJXXW2
