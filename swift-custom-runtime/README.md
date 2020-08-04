@@ -47,7 +47,7 @@ sam local invoke SwiftApi -e events/api-event.json
 
 ### Squared
 ```
-sam local invoke Squared -e events/squared.json
+sam local invoke Squared -e events/squared-event.json
 ```
 
 ## Deployment
