@@ -100,12 +100,6 @@ This projects builds two Lambda functions built with Swift. Squared is a simple 
 
 [Code](./swift-custom-runtime/README.md)
 
-### HTTP API http proxy for SQS
-
-This project builds an HTTP API with a proxy in front of an SQS queue. Warning, the QUEUE is open to the public and cannot be limited to the HTTP API in this fashin.
-
-[Code](./http-api-sqs)
-
 - - - - - - - - - - - - - - - - - - - - - - - -
 
 *See the full YouTube playlist [https://slip.link/sws-vids](https://slip.link/sws-vids)*
