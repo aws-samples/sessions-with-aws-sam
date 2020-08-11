@@ -1,14 +1,16 @@
 # go-al2
 
-This is a sample template for go-al2 - Below is a brief explanation of what we have generated for you:
+This is a sample template for Go on Amazon Linux 2 (AL2) - Below is a brief explanation of what we have generated for you:
 
 ```bash
 .
-├── Makefile                    <-- Make to automate build
-├── README.md                   <-- This instructions file
-├── hello-world                 <-- Source code for a lambda function
-│   ├── main.go                 <-- Lambda function code
-│   └── main_test.go            <-- Unit tests
+├── README.md         <- This file>
+├── hello-world
+│   ├── Makefile      <- Make to automate build>
+│   ├── go.mod        <- Dependencies
+│   ├── main.go       <- Lambda function code
+│   └── main_test.go  <- Unit tests
+├── samconfig.toml
 └── template.yaml
 ```
 
@@ -26,10 +28,10 @@ This is a sample template for go-al2 - Below is a brief explanation of what we h
 In this example we use the built-in `sam build` to automatically download all the dependencies and package our build target.   
 Read more about [SAM Build here](https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/sam-cli-command-reference-sam-build.html) 
 
-The `sam build` command is wrapped inside of the `Makefile`. To execute this simply run
+To execute this simply run
  
 ```shell
-make
+sam build
 ```
 
 ### Local development
