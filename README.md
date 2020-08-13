@@ -106,6 +106,12 @@ This projects builds two Lambda functions built with Swift. Squared is a simple 
 
 [Code](./swift-custom-runtime/README.md)
 
+### Running Go as a custom runtime on Amazon Linux 2
+
+This project demonstrates running Go on al2 with the new **provided.al2** custom runtime.
+
+[Code](./go-al2/README.md)
+
 - - - - - - - - - - - - - - - - - - - - - - - -
 
 *See the full YouTube playlist [https://slip.link/sws-vids](https://slip.link/sws-vids)*
