@@ -85,6 +85,12 @@ In this episode, I am joined by Chase Douglas, Stackery CTO. We talk through usi
 
 [Code](./dotnet-api/README.md) | [Video](https://youtu.be/PGA8hbydHUA)
 
+### Using SAM to create and use secrets
+
+In this session we cover using AWS Systems Manager Parameter Store and the AWS SecretsManager within AWS SAM templates. Using these services helps developers store account specific secrets that are easily utilized by SAM on application creation and updates.
+
+[Code](./secrets/README.md) | [Video](https://youtu.be/aBPWq8SD8WA)
+
 # Additonal Templates
 
 These templates do not have an accompanying episode or it has not aired yet.
