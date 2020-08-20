@@ -6,6 +6,12 @@ Parameters:
   ClientDomains:
     Type: CommaDelimitedList
     Description: Array of domains for CORS
+  Environment:
+    Type: String
+    Default: Dev
+    
+Conditions:
+  IsProd: !Equals [!Ref Environment, Prod]
 
 Globals:
   Function:
@@ -51,7 +57,7 @@ Resources:
             Path: /
             Method: GET
       DeploymentPreference:
-        Type: AllAtOnce #Linear10PercentEvery1Minute
+        Type: !If [IsProd, Linear10PercentEvery1Minute, AllAtOnce]
         TriggerConfigurations:
           - TriggerTargetArn: !Ref AlertTopic
             TriggerName: BaseAlerts
