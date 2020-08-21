@@ -36,3 +36,8 @@ Resources:
               Effect: Allow
               Resource:
                 - !GetAtt MyQueue.Arn
+                
+Outputs:
+  ApiEndpoint:
+    Description: "HTTP API endpoint URL"
+    Value: !Sub "https://${MyHttpApi}.execute-api.${AWS::Region}.amazonaws.com"

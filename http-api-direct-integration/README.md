@@ -1,6 +1,11 @@
 # HTTP API direct integration example
 
-This template demonstrates using the new HTTP APIs direct integration to an Amazon SQS queue.
+This template demonstrates using the new HTTP APIs direct integration to an Amazon SQS queue. The following resources are built:
+* SQS Queue
+* HTTP API
+* IAM Role for HTTP API
+
+The *api.yaml* file contains the OpenAPI definition for the direct integration.
 
 ### Deployement
 From this folder run:
