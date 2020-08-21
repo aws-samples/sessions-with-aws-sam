@@ -91,6 +91,12 @@ In this session we cover using AWS Systems Manager Parameter Store and the AWS S
 
 [Code](./secrets/README.md) | [Video](https://youtu.be/aBPWq8SD8WA)
 
+### Adding governance to serverless applications with AWS Config and AWS SAM
+
+This session is the first of four on adding governance to serverless application. In this session I demonstrate configuring an account to record and store governance data in AWS Config with AWS SAM.
+
+[Code](./governance/README.md) | [Video]()
+
 # Additonal Templates
 
 These templates do not have an accompanying episode or it has not aired yet.

@@ -1,6 +1,6 @@
 AWSTemplateFormatVersion: 2010-09-09
 Transform: AWS::Serverless-2016-10-31
-Description: Gevernance for Serverless
+Description: Gevernance for Serverless initial setup
 
 Parameters:
   MainRegion:
@@ -14,16 +14,16 @@ Conditions:
 Resources:
   DataBucket: # Region specific bucket
     Type: AWS::S3::Bucket
-  
+    
   NotificationTopic: # Allows subscriptins for config updates
     Type: AWS::SNS::Topic
-
+    
   DeliveryChannel: # Regional delivery channel
     Type: AWS::Config::DeliveryChannel
     Properties: 
       S3BucketName: !Ref DataBucket
       SnsTopicARN: !Ref NotificationTopic
-
+      
   ConfigRecorder: # Regional recorder
     Type: AWS::Config::ConfigurationRecorder
     Properties: 
