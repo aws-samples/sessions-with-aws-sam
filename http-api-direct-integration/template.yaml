@@ -37,6 +37,21 @@ Resources:
               Resource:
                 - !GetAtt MyQueue.Arn
                 
+  MyTriggeredLambda:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: src/
+      Handler: app.lambdaHandler
+      Runtime: nodejs12.x
+      Policies:
+        - SQSPollerPolicy:
+            QueueName: !GetAtt MyQueue.QueueName
+      Events:
+        SQSTrigger:
+          Type: SQS
+          Properties:
+            Queue: !GetAtt MyQueue.Arn
+
 Outputs:
   ApiEndpoint:
     Description: "HTTP API endpoint URL"
