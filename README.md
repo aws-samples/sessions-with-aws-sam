@@ -118,6 +118,10 @@ This project demonstrates running Go on al2 with the new **provided.al2** custom
 
 [Code](./go-al2/README.md)
 
+### HTTP APIs service integration blog example
+This template builds an HTTP APIs service integration to SQS with a Lambda function for testing.
+[Code](./http-api-integrations-blog-example/README.md) | [Blog](https://aws.amazon.com/blogs/compute/building-low-code-applications-with-http-apis-service-integrations/)
+
 - - - - - - - - - - - - - - - - - - - - - - - -
 
 *See the full YouTube playlist [https://slip.link/sws-vids](https://slip.link/sws-vids)*
