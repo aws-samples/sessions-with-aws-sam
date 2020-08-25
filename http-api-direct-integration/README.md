@@ -16,23 +16,41 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. -->
 
 # HTTP API direct integration example
 
-This template demonstrates using the new HTTP APIs direct integration to an Amazon SQS queue. The following resources are built:
+This template demonstrates using the new HTTP APIs direct integration to an Amazon SQS queue, a Kinesis Data Stream, and the default EventBridge bus. The following resources are built:
 * SQS Queue
+* Kinesis Data Stream
 * HTTP API
 * IAM Role for HTTP API
+* A Lambda function for testing.
 
 The *api.yaml* file contains the OpenAPI definition for the direct integration.
 
-### Deployement
+## Deployement
 From this folder run:
 ```bash
 sam deploy -g
 ```
 
-### Testing
+## Testing
 Update the '\<url\>' with your URL after deployment
+
+### SQS
 ```bash
-curl --location --request POST '<url>' \
+curl --location --request POST '<url>/sqs' \
 --header 'Content-Type: application/json' \
 --data-raw '{"MessageBody":"This is my message"}'
+```
+
+### EventBridge
+```bash
+curl --location --request POST '<url>/eb' \
+--header 'Content-Type: application/json' \
+--data-raw '{"Detail": {"First Name": "My first name"}}'
+```
+
+### Kinesis
+```bash
+curl --location --request POST '<url>/kinesis' \
+--header 'Content-Type: application/json' \
+--data-raw '{"Data": "Here is the data"}'
 ```
