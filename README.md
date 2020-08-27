@@ -97,6 +97,11 @@ This session is the first of four on adding governance to serverless application
 
 [Code](./governance/README.md) | [Video]()
 
+### Using the new HTTP APIs direct integrations in AWS SAM
+In this session I will walk through creating a direct service integration on HTTP API. We will cover building it in the console and exporting for use with AWS SAM.
+
+[Code](./http-api-direct-integration/README.md) | [Video](https://youtu.be/qa3lkaz7pnI)
+
 # Additonal Templates
 
 These templates do not have an accompanying episode or it has not aired yet.
