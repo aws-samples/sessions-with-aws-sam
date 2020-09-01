@@ -1,6 +1,6 @@
 openapi: "3.0.1"
 info:
-  title: "DI SQS"
+  title: "HTTP API to SQS"
 paths:
   /:
     post:
