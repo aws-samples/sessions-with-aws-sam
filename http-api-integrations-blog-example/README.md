@@ -16,6 +16,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. -->
 
 # HTTP API direct integration example
 
+Blog post: [Building storage-first serverless applications with HTTP APIs service integrations](https://aws.amazon.com/blogs/compute/building-storage-first-applications-with-http-apis-service-integrations/)
+
 This template demonstrates using the new HTTP APIs direct integration to an Amazon SQS queue. The following resources are built:
 * SQS Queue
 * HTTP API

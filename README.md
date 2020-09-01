@@ -127,6 +127,10 @@ This project demonstrates running Go on al2 with the new **provided.al2** custom
 This template builds an HTTP APIs service integration to SQS with a Lambda function for testing.
 [Code](./http-api-integrations-blog-example/README.md) | [Blog](https://aws.amazon.com/blogs/compute/building-storage-first-applications-with-http-apis-service-integrations/)
 
+### API Gateway enhanced observability variables
+This example demonstrates using the new API Gateway enhanced observability variables to get the full story of an API Gateway request and response.
+
+[Code](./api-enhanced-observability-variables/README.md)
 - - - - - - - - - - - - - - - - - - - - - - - -
 
 *See the full YouTube playlist [https://slip.link/sws-vids](https://slip.link/sws-vids)*
