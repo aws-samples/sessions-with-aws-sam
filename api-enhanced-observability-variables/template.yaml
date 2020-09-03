@@ -44,7 +44,7 @@ Resources:
     Type: AWS::WAFv2::WebACL
     Properties:
       DefaultAction:
-        Block: {}
+        Allow: {}
       Description: Application WAF
       Scope: REGIONAL
       VisibilityConfig:
@@ -53,16 +53,16 @@ Resources:
         SampledRequestsEnabled: true
       Rules:
         - Action:
-            Allow: {}
-          Name: GeoCount
+            Block: {}
+          Name: RateLimit
           Priority: 0
           Statement:
-            GeoMatchStatement:
-              CountryCodes:
-                - US
+            RateBasedStatement:
+              AggregateKeyType: "IP"
+              Limit: 100
           VisibilityConfig:
             CloudWatchMetricsEnabled: true
-            MetricName: GEOLimiter
+            MetricName: RateLimiter
             SampledRequestsEnabled: true
             
   MyWAFAssociation:
