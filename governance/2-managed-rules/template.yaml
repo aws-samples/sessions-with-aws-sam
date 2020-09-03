@@ -8,10 +8,14 @@ Resources:
     Type: AWS::Config::ConfigRule
     Properties: 
       Description: Require API GW Logging
+      # MaximumExecutionFrequency: One_Hour | Six_Hours | Three_Hours | Twelve_Hours | TwentyFour_Hours *Default
       Scope: 
         ComplianceResourceTypes:
           - AWS::ApiGateway::Stage
           - AWS::ApiGatewayV2::Stage
+        # ComplianceResourceId
+        # TagKey: Environment
+        # TagValue: Production
       Source: 
         Owner: AWS
         SourceIdentifier: API_GW_EXECUTION_LOGGING_ENABLED

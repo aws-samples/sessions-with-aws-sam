@@ -102,6 +102,12 @@ In this session I will walk through creating a direct service integration on HTT
 
 [Code](./http-api-direct-integration/README.md) | [Video](https://youtu.be/qa3lkaz7pnI)
 
+### Adding governance to serverless applications with AWS Config and AWS SAM Part 2
+
+This session is the second of four on adding governance to serverless application. In this session I demonstrate configuring AWS managed rules used in AWS Config.
+
+[Code](./governance/README.md) | [Video](https://youtu.be/BCZvShTgLGY)
+
 # Additonal Templates
 
 These templates do not have an accompanying episode or it has not aired yet.
