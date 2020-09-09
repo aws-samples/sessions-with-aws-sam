@@ -1,0 +1,68 @@
+{
+  "configurationItemDiff": {
+    "changedProperties": {},
+    "changeType": "CREATE"
+  },
+  "configurationItem": {
+    "relatedEvents": [],
+    "relationships": [{
+      "resourceId": null,
+      "resourceName": "AccountConfig-custom-rules-GenericRuleLambdaRole-Z12JF10PWPH1",
+      "resourceType": "AWS::IAM::Role",
+      "name": "Is associated with "
+    }],
+    "configuration": {
+      "functionName": "AccountConfig-custom-rules-GenericRuleLambda-C9ND6GWEZMA6",
+      "functionArn": "arn:aws:lambda:us-west-2:088483494489:function:AccountConfig-custom-rules-GenericRuleLambda-C9ND6GWEZMA6",
+      "runtime": "nodejs12.x",
+      "role": "arn:aws:iam::088483494489:role/AccountConfig-custom-rules-GenericRuleLambdaRole-Z12JF10PWPH1",
+      "handler": "generic-by-params.handler",
+      "codeSize": 1332,
+      "description": "Validator lambda for config params",
+      "timeout": 5,
+      "memorySize": 128,
+      "lastModified": "2020-09-09T05:30:28.963+0000",
+      "codeSha256": "fgvX46UHq2MhmvduxjmvLVEq28X2kmv4JEjIun6r8og=",
+      "version": "$LATEST",
+      "tracingConfig": {
+        "mode": "Active"
+      },
+      "revisionId": "70695977-bacc-470a-a8cb-f15664c1ecc0",
+      "layers": [],
+      "state": "Active",
+      "lastUpdateStatus": "Successful",
+      "fileSystemConfigs": []
+    },
+    "supplementaryConfiguration": {
+      "Policy": "{\"Version\":\"2012-10-17\",\"Id\":\"default\",\"Statement\":[{\"Sid\":\"AccountConfig-custom-rules-GeneralLambdaAccessPermission-FNW5CDDZTHX5\",\"Effect\":\"Allow\",\"Principal\":{\"Service\":\"config.amazonaws.com\"},\"Action\":\"lambda:InvokeFunction\",\"Resource\":\"arn:aws:lambda:us-west-2:088483494489:function:AccountConfig-custom-rules-GenericRuleLambda-C9ND6GWEZMA6\",\"Condition\":{\"StringEquals\":{\"AWS:SourceAccount\":\"088483494489\"}}}]}",
+      "Tags": {
+        "aws:cloudformation:stack-name": "AccountConfig-custom-rules",
+        "lambda:createdBy": "SAM",
+        "aws:cloudformation:stack-id": "arn:aws:cloudformation:us-west-2:088483494489:stack/AccountConfig-custom-rules/7e35d940-f25d-11ea-a21d-023d36b78e69",
+        "aws:cloudformation:logical-id": "GenericRuleLambda"
+      }
+    },
+    "tags": {
+      "aws:cloudformation:stack-name": "AccountConfig-custom-rules",
+      "lambda:createdBy": "SAM",
+      "aws:cloudformation:stack-id": "arn:aws:cloudformation:us-west-2:088483494489:stack/AccountConfig-custom-rules/7e35d940-f25d-11ea-a21d-023d36b78e69",
+      "aws:cloudformation:logical-id": "GenericRuleLambda"
+    },
+    "configurationItemVersion": "1.3",
+    "configurationItemCaptureTime": "2020-09-09T05:32:29.978Z",
+    "configurationStateId": 1599629549978,
+    "awsAccountId": "088483494489",
+    "configurationItemStatus": "ResourceDiscovered",
+    "resourceType": "AWS::Lambda::Function",
+    "resourceId": "AccountConfig-custom-rules-GenericRuleLambda-C9ND6GWEZMA6",
+    "resourceName": "AccountConfig-custom-rules-GenericRuleLambda-C9ND6GWEZMA6",
+    "ARN": "arn:aws:lambda:us-west-2:088483494489:function:AccountConfig-custom-rules-GenericRuleLambda-C9ND6GWEZMA6",
+    "awsRegion": "us-west-2",
+    "availabilityZone": "Not Applicable",
+    "configurationStateMd5Hash": "",
+    "resourceCreationTime": null
+  },
+  "notificationCreationTime": "2020-09-09T05:32:32.134Z",
+  "messageType": "ConfigurationItemChangeNotification",
+  "recordVersion": "1.3"
+}

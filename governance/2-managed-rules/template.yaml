@@ -11,8 +11,8 @@ Resources:
       # MaximumExecutionFrequency: One_Hour | Six_Hours | Three_Hours | Twelve_Hours | TwentyFour_Hours *Default
       Scope: 
         ComplianceResourceTypes:
-          - AWS::ApiGateway::Stage
-          - AWS::ApiGatewayV2::Stage
+          - AWS::ApiGateway::Stage #API
+          - AWS::ApiGatewayV2::Stage #HTTP API
         # ComplianceResourceId
         # TagKey: Environment
         # TagValue: Production

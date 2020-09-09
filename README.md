@@ -108,6 +108,12 @@ This session is the second of four on adding governance to serverless applicatio
 
 [Code](./governance/README.md) | [Video](https://youtu.be/BCZvShTgLGY)
 
+### Adding governance to serverless applications with AWS Config and AWS SAM Part 3
+
+This session is the third of four on adding governance to serverless application. In this session I demonstrate building custom rules for AWS Config.
+
+[Code](./governance/README.md) | [Video](https://youtu.be/6Xs6g8FO5qY)
+
 # Additonal Templates
 
 These templates do not have an accompanying episode or it has not aired yet.

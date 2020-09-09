@@ -1,0 +1,5 @@
+{
+  "resourceTypesArray": ["AWS::Lambda::Function"],
+  "keyPath": "tracingConfig.mode",
+  "acceptedValues": ["Active"]
+}

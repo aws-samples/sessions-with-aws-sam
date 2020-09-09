@@ -1,0 +1,74 @@
+
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: Custom rules for serverless governance
+
+Globals:
+  Function:
+    Timeout: 5
+    Tracing: Active
+    Runtime: nodejs12.x
+    CodeUri: src/
+
+Resources:
+  ApiGWTracingRule: # Custom rule: enforces tracing to be enabled on API Gateway
+    Type: AWS::Config::ConfigRule
+    DependsOn: GeneralLambdaAccessPermission
+    Properties:
+      Description: Require API GW enabled tracing
+      InputParameters: {"resourceTypesArray":["AWS::ApiGateway::Stage"],"keyPath":"tracingEnabled", "acceptedValues": [true]}
+      Scope:
+        ComplianceResourceTypes:
+          - AWS::ApiGateway::Stage
+      Source:
+        Owner: CUSTOM_LAMBDA
+        SourceIdentifier: !GetAtt GenericRuleLambda.Arn
+        SourceDetails:
+          - EventSource: aws.config
+            MessageType: ConfigurationItemChangeNotification
+          - EventSource: aws.config
+            MessageType: OversizedConfigurationItemChangeNotification
+
+  LambdaTracingRule: # Custom Rule: enforces X-ray to be enabled on Lambda functions
+    Type: AWS::Config::ConfigRule
+    DependsOn: GeneralLambdaAccessPermission
+    Properties:
+      Description: Require X-Ray Active tracing on Lambda
+      InputParameters: {"resourceTypesArray":["AWS::Lambda::Function"],"keyPath":"tracingConfig.mode", "acceptedValues": ["Active"]}
+      Scope:
+        ComplianceResourceTypes:
+          - AWS::Lambda::Function
+      Source:
+        Owner: CUSTOM_LAMBDA
+        SourceIdentifier: !GetAtt GenericRuleLambda.Arn
+        SourceDetails:
+          - EventSource: aws.config
+            MessageType: ConfigurationItemChangeNotification
+          - EventSource: aws.config
+            MessageType: OversizedConfigurationItemChangeNotification
+
+  GenericRuleLambda: # Lambda function for custom validation. Parameters are passed from rules
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: generic-by-params.handler
+      Description: Validator lambda for config params
+      Policies:
+        - Version: '2012-10-17'
+          Statement:
+            Action:
+              - config:Put*
+              - config:Get*
+              - config:List*
+              - config:Describe*
+              - config:BatchGet*
+              - config:Select*
+            Effect: Allow
+            Resource: "*"
+
+  GeneralLambdaAccessPermission: # Permission for generic Lambda
+    Type: AWS::Lambda::Permission
+    Properties: 
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref GenericRuleLambda
+      Principal: config.amazonaws.com
+      SourceAccount: !Ref 'AWS::AccountId'
