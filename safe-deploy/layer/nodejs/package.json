@@ -10,6 +10,6 @@
   "license": "MIT",
   "dependencies": {
     "aws-sdk": "^2.437.0",
-    "node-fetch": "^2.6.0"
+    "node-fetch": "^2.6.1"
   }
 }
