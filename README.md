@@ -114,6 +114,14 @@ This session is the third of four on adding governance to serverless application
 
 [Code](./governance/README.md) | [Video](https://youtu.be/6Xs6g8FO5qY)
 
+### Adding governance to serverless applications with AWS Config and AWS SAM Part 4
+
+This session is the final of four on adding governance to serverless application. In this session I demonstrate making the initial setup template reusable across regions and accounts. I also add aggregates to collect data from multiple accounts on a single dashboard..
+
+[Code](./governance/README.md) | [Video](https://youtu.be/5wj8GG8JGCQ)
+
+
+
 # Additonal Templates
 
 These templates do not have an accompanying episode or it has not aired yet.

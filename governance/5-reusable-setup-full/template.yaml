@@ -101,3 +101,17 @@ Resources:
               Effect: Allow
               Resource:
                 - !Ref NotificationTopic
+
+  #################################################################################################################################
+  ##################################                     add managed rules                    #####################################
+  #################################################################################################################################
+
+  ManagedRules:
+    Type: AWS::Serverless::Application
+    Properties:
+      Location: ../2-managed-rules/template.yaml
+
+  CustomRules:
+    Type: AWS::Serverless::Application
+    Properties:
+      Location: ../3-custom-rules/template.yaml
