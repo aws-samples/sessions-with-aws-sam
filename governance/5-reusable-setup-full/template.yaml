@@ -108,10 +108,12 @@ Resources:
 
   ManagedRules:
     Type: AWS::Serverless::Application
+    DependsOn: ConfigRecorder
     Properties:
       Location: ../2-managed-rules/template.yaml
 
   CustomRules:
     Type: AWS::Serverless::Application
+    DependsOn: ConfigRecorder
     Properties:
       Location: ../3-custom-rules/template.yaml
