@@ -1,0 +1,54 @@
+openapi: "3.0.1"
+info:
+  title: "DI All Integrations"
+paths:
+  /sqs:
+    post:
+      responses:
+        default:
+          description: "SQS response"
+      x-amazon-apigateway-integration:
+        integrationSubtype: "SQS-SendMessage"
+        credentials:
+          Fn::GetAtt: [MyHttpApiRole, Arn]
+        requestParameters:
+          MessageBody: "$request.body.MessageBody"
+          QueueUrl:
+            Ref: MyQueue
+        payloadFormatVersion: "1.0"
+        type: "aws_proxy"
+        connectionType: "INTERNET"
+  /eb:
+    post:
+      responses:
+        default:
+          description: "EventBridge response"
+      x-amazon-apigateway-integration:
+        integrationSubtype: "EventBridge-PutEvents"
+        credentials:
+          Fn::GetAtt: [MyHttpApiRole, Arn]
+        requestParameters:
+          Detail: "$request.body.Detail"
+          DetailType: MyDetailType
+          Source: WebApp
+        payloadFormatVersion: "1.0"
+        type: "aws_proxy"
+        connectionType: "INTERNET"
+  /kinesis:
+    post:
+      responses:
+        default:
+          description: "Kinesis response"
+      x-amazon-apigateway-integration:
+        integrationSubtype: "Kinesis-PutRecord"
+        credentials:
+          Fn::GetAtt: [MyHttpApiRole, Arn]
+        requestParameters:
+          StreamName:
+            Ref: MyStream
+          Data: "$request.body.Data"
+          PartitionKey: MyPartition
+        payloadFormatVersion: "1.0"
+        type: "aws_proxy"
+        connectionType: "INTERNET"
+x-amazon-apigateway-importexport-version: "1.0"

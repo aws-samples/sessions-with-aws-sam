@@ -1,0 +1,43 @@
+AWSTemplateFormatVersion: 2010-09-09
+Transform: AWS::Serverless-2016-10-31
+Description: Gevernance for Serverless managed rules
+
+
+Resources:
+  ApiGWLoggingRule: # AWS Managed rule: enforces enabling of execution logging
+    Type: AWS::Config::ConfigRule
+    Properties: 
+      Description: Require API GW Logging
+      # MaximumExecutionFrequency: One_Hour | Six_Hours | Three_Hours | Twelve_Hours | TwentyFour_Hours *Default
+      Scope: 
+        ComplianceResourceTypes:
+          - AWS::ApiGateway::Stage #API
+          - AWS::ApiGatewayV2::Stage #HTTP API
+        # ComplianceResourceId
+        # TagKey: Environment
+        # TagValue: Production
+      Source: 
+        Owner: AWS
+        SourceIdentifier: API_GW_EXECUTION_LOGGING_ENABLED
+
+  S3NoPublicReadRule: # AWS Managed rule: enforces no S3 buckets with public read
+    Type: AWS::Config::ConfigRule
+    Properties:
+      Description: S3 block public read
+      Scope:
+        ComplianceResourceTypes:
+          - AWS::S3::Bucket
+      Source:
+        Owner: AWS
+        SourceIdentifier: S3_BUCKET_PUBLIC_READ_PROHIBITED
+
+  S3NoPublicWriteRule: # AWS Managed rule: enforces no S3 buckets with public write
+    Type: AWS::Config::ConfigRule
+    Properties:
+      Description: S3 block public write
+      Scope:
+        ComplianceResourceTypes:
+          - AWS::S3::Bucket
+      Source:
+        Owner: AWS
+        SourceIdentifier: S3_BUCKET_PUBLIC_WRITE_PROHIBITED

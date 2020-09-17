@@ -1,0 +1,99 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: Functionless URL Shortner
+
+Globals:
+  Function:
+    Timeout: 5
+    Handler: app.lambdaHandler
+    Runtime: nodejs12.x
+
+Resources:
+  MyApi: 
+    Type: AWS::Serverless::Api 
+    Properties: 
+      StageName: Prod
+      EndpointConfiguration: REGIONAL
+      TracingEnabled: true
+      Auth:
+        DefaultAuthorizer: AWS_IAM
+        InvokeRole: CALLER_CREDENTIALS
+      AccessLogSetting:
+        DestinationArn: !GetAtt MyLogGroup.Arn
+        Format: >
+          {"requestId":"$context.requestId",
+          "waf-error":"$context.waf.error",
+          "waf-status":"$context.waf.status",
+          "waf-latency":"$context.waf.latency",
+          "waf-response":"$context.wafResponseCode",
+          "authenticate-error":"$context.authenticate.error",
+          "authenticate-status":"$context.authenticate.status",
+          "authenticate-latency":"$context.authenticate.latency",
+          "authorize-error":"$context.authorize.error",
+          "authorize-status":"$context.authorize.status",
+          "authorize-latency":"$context.authorize.latency",
+          "integration-error":"$context.integration.error",
+          "integration-status":"$context.integration.status",
+          "integration-latency":"$context.integration.latency",
+          "integration-requestId":"$context.integration.requestId",
+          "integration-integrationStatus":"$context.integration.integrationStatus",
+          "response-latency":"$context.responseLatency",
+          "status":"$context.status"}
+  
+  MyWAFACL:
+    Type: AWS::WAFv2::WebACL
+    Properties:
+      DefaultAction:
+        Allow: {}
+      Description: Application WAF
+      Scope: REGIONAL
+      VisibilityConfig:
+        CloudWatchMetricsEnabled: true
+        MetricName: AppRules
+        SampledRequestsEnabled: true
+      Rules:
+        - Action:
+            Block: {}
+          Name: RateLimit
+          Priority: 0
+          Statement:
+            RateBasedStatement:
+              AggregateKeyType: "IP"
+              Limit: 100
+          VisibilityConfig:
+            CloudWatchMetricsEnabled: true
+            MetricName: RateLimiter
+            SampledRequestsEnabled: true
+            
+  MyWAFAssociation:
+    Type: AWS::WAFv2::WebACLAssociation
+    Properties: 
+      ResourceArn:
+        !Sub 
+          - arn:aws:apigateway:${AWS::Region}::/restapis/${ApiId}/stages/${ApiStage}
+          - ApiId: !Ref MyApi
+            ApiStage: !Ref MyApiProdStage
+      WebACLArn: !GetAtt MyWAFACL.Arn
+      
+  MyLogGroup:
+    Type: AWS::Logs::LogGroup
+            
+  MyLambdaFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: src/
+      Events:
+        RootGet:
+          Type: Api
+          Properties:
+            Path: /
+            Method: get
+            RestApiId: !Ref MyApi
+            
+Outputs:
+  ApiEndpoint:
+    Description: "API endpoint URL"
+    Value:
+      !Sub
+        - "https://${MyApi}.execute-api.${AWS::Region}.amazonaws.com/${ApiStage}"
+        - ApiStage: !Ref MyApiProdStage

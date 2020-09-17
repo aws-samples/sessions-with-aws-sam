@@ -97,6 +97,23 @@ This session is the first of four on adding governance to serverless application
 
 [Code](./governance/README.md) | [Video]()
 
+### Using the new HTTP APIs direct integrations in AWS SAM
+In this session I will walk through creating a direct service integration on HTTP API. We will cover building it in the console and exporting for use with AWS SAM.
+
+[Code](./http-api-direct-integration/README.md) | [Video](https://youtu.be/qa3lkaz7pnI)
+
+### Adding governance to serverless applications with AWS Config and AWS SAM Part 2
+
+This session is the second of four on adding governance to serverless application. In this session I demonstrate configuring AWS managed rules used in AWS Config.
+
+[Code](./governance/README.md) | [Video](https://youtu.be/BCZvShTgLGY)
+
+### Adding governance to serverless applications with AWS Config and AWS SAM Part 3
+
+This session is the third of four on adding governance to serverless application. In this session I demonstrate building custom rules for AWS Config.
+
+[Code](./governance/README.md) | [Video](https://youtu.be/6Xs6g8FO5qY)
+
 # Additonal Templates
 
 These templates do not have an accompanying episode or it has not aired yet.
@@ -118,6 +135,14 @@ This project demonstrates running Go on al2 with the new **provided.al2** custom
 
 [Code](./go-al2/README.md)
 
+### HTTP APIs service integration blog example
+This template builds an HTTP APIs service integration to SQS with a Lambda function for testing.
+[Code](./http-api-integrations-blog-example/README.md) | [Blog](https://aws.amazon.com/blogs/compute/building-storage-first-applications-with-http-apis-service-integrations/)
+
+### API Gateway enhanced observability variables
+This example demonstrates using the new API Gateway enhanced observability variables to get the full story of an API Gateway request and response.
+
+[Code](./api-enhanced-observability-variables/README.md)
 - - - - - - - - - - - - - - - - - - - - - - - -
 
 *See the full YouTube playlist [https://slip.link/sws-vids](https://slip.link/sws-vids)*

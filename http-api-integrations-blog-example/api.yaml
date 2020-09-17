@@ -1,0 +1,21 @@
+openapi: "3.0.1"
+info:
+  title: "HTTP API to SQS"
+paths:
+  /:
+    post:
+      responses:
+        default:
+          description: "SQS response"
+      x-amazon-apigateway-integration:
+        integrationSubtype: "SQS-SendMessage"
+        credentials:
+          Fn::GetAtt: [MyHttpApiRole, Arn]
+        requestParameters:
+          MessageBody: "$request.body.MessageBody"
+          QueueUrl:
+            Ref: MyQueue
+        payloadFormatVersion: "1.0"
+        type: "aws_proxy"
+        connectionType: "INTERNET"
+x-amazon-apigateway-importexport-version: "1.0"
