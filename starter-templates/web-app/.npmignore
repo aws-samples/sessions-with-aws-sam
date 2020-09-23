@@ -1,0 +1,5 @@
+__tests__/*
+events/*
+buildspec.yaml
+template.yaml
+env.json
