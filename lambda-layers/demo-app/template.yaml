@@ -6,9 +6,9 @@ Globals:
   Function:
     Timeout: 3
     Layers:
-      # You need to exchange this for YOUR account numbers
-      - arn:aws:lambda:us-west-2:088483494489:layer:NodeBaseLayer:4
-      - arn:aws:lambda:us-west-2:088483494489:layer:NodeUtilitiesLayer:2
+      # You need to exchange this for YOUR layers
+      - <NodeBaseLayer>
+      - <NodeUtilitiesLayer>
       - !Ref AppLayer
 
 Resources:
