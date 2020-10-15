@@ -40,21 +40,21 @@ Resources:
       LayerVersionArn: !Ref NodeUtilitiesLayer
       Principal: !Ref AWS::AccountId
       
-  # PythonBaseLayer:
-  #   Type: AWS::Serverless::LayerVersion
-  #   Properties:
-  #     Description: Base layer for python apps (boto3, requests)
-  #     ContentUri: python-base/
-  #     RetentionPolicy: Retain
-  #   Metadata:
-  #     BuildMethod: python3.8
+  PythonBaseLayer:
+    Type: AWS::Serverless::LayerVersion
+    Properties:
+      Description: Base layer for python apps (boto3, requests)
+      ContentUri: python-base/
+      RetentionPolicy: Retain
+    Metadata:
+      BuildMethod: python3.8
       
-  # PythonBaseLayerPermission:
-  #   Type: "AWS::Lambda::LayerVersionPermission"
-  #   Properties:
-  #     Action: lambda:GetLayerVersion
-  #     LayerVersionArn: !Ref PythonBaseLayer
-  #     Principal: !Ref AWS::AccountId
+  PythonBaseLayerPermission:
+    Type: "AWS::Lambda::LayerVersionPermission"
+    Properties:
+      Action: lambda:GetLayerVersion
+      LayerVersionArn: !Ref PythonBaseLayer
+      Principal: !Ref AWS::AccountId
       
 Outputs:
   NodeBaseArn:
@@ -63,6 +63,6 @@ Outputs:
   NodeUtilitiesArn:
     Description: Layer Version ARN for utilities base
     Value: !Ref NodeUtilitiesLayer
-  # PythonBaseArn:
-  #   Description: Layer Version ARN for python base
-  #   Value: !Ref PythonBaseLayer
+  PythonBaseArn:
+    Description: Layer Version ARN for python base
+    Value: !Ref PythonBaseLayer

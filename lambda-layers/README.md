@@ -16,3 +16,17 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. -->
 
 # Lambda Layers
 This session talks through using Lambda layers externally and internal to the application. It also covers local development with Layers.
+
+### Deploy layer repo first
+```
+cd layer-repo
+sam deploy -g
+```
+
+### Test local app
+1. update template with YOUR layerVersion ARNs
+2. build and invoke
+```
+cd demo-app
+sam build && sam local invoke
+```
