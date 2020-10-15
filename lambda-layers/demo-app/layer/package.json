@@ -1,0 +1,14 @@
+{
+  "name": "app-deps",
+  "version": "1.0.0",
+  "description": "app deps",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Eric Johnson",
+  "license": "ISC",
+  "dependencies": {
+    "numeral": "2.0.6"
+  }
+}

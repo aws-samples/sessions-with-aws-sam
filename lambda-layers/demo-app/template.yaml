@@ -1,0 +1,45 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: Demo layer application
+  
+Globals:
+  Function:
+    Timeout: 3
+    Layers:
+      - arn:aws:lambda:us-west-2:088483494489:layer:NodeBaseLayer:4
+      - arn:aws:lambda:us-west-2:088483494489:layer:NodeUtilitiesLayer:2
+      - !Ref AppLayer
+
+Resources:
+  HelloWorldFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: hello-world/
+      Handler: app.lambdaHandler
+      Runtime: nodejs12.x
+      Events:
+        HelloWorld:
+          Type: Api
+          Properties:
+            Path: /
+            Method: get
+            
+  AppLayer:
+    Type: AWS::Serverless::LayerVersion
+    Properties:
+      Description: app specific deps
+      ContentUri: layer/
+      RetentionPolicy: Delete
+    Metadata:
+      BuildMethod: nodejs12.x
+
+Outputs:
+  HelloWorldApi:
+    Description: "API Gateway endpoint URL for Prod stage for Hello World function"
+    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/"
+  HelloWorldFunction:
+    Description: "Hello World Lambda Function ARN"
+    Value: !GetAtt HelloWorldFunction.Arn
+  HelloWorldFunctionIamRole:
+    Description: "Implicit IAM Role created for Hello World function"
+    Value: !GetAtt HelloWorldFunctionRole.Arn

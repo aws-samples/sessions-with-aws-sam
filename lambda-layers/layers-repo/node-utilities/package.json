@@ -1,0 +1,15 @@
+{
+  "name": "node-base",
+  "version": "1.0.0",
+  "description": "base dependencies for serverless node apps",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Eric Johnson",
+  "license": "ISC",
+  "dependencies": {
+    "lodash": "^4.17.20",
+    "moment": "^2.29.1"
+  }
+}

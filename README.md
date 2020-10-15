@@ -125,6 +125,11 @@ This session is the final of four on adding governance to serverless application
 This session covers using the AWSSAM CLI custom build to use Makefiles in the build process. THis example demonstrates using webpack in node apps.
 [Code](./node-webpack-custom-build/README.md) | [Video](https://youtu.be/wpccutnSbAk)
 
+### Lambda Layers
+This session talks through using Lambda layers externally and internal to the application. It also covers local development with Layers.
+[Code](./lambda-layers/README.md) | [Video](https://youtu.be/BOq4gOu4-ak)
+
+
 # Additonal Templates
 
 These templates do not have an accompanying episode or it has not aired yet.

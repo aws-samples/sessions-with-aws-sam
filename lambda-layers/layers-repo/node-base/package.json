@@ -1,0 +1,15 @@
+{
+  "name": "node-base",
+  "version": "1.0.0",
+  "description": "base dependencies for serverless node apps",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Eric Johnson",
+  "license": "ISC",
+  "dependencies": {
+    "aws-sdk": "^2.771.0",
+    "axios": "^0.20.0"
+  }
+}
