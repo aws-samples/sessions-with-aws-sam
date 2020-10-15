@@ -120,7 +120,10 @@ This session is the final of four on adding governance to serverless application
 
 [Code](./governance/README.md) | [Video](https://youtu.be/5wj8GG8JGCQ)
 
+### Using SAM CLI custom build
 
+This session covers using the AWSSAM CLI custom build to use Makefiles in the build process. THis example demonstrates using webpack in node apps.
+[Code](./node-webpack-custom-build/README.md) | [Video](https://youtu.be/wpccutnSbAk)
 
 # Additonal Templates
 
