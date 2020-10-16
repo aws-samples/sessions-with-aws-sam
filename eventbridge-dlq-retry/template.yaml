@@ -55,9 +55,9 @@ Resources:
       Targets:
         - Arn: !GetAtt TriggeredFunction.Arn
           Id: lambdaTarget
-          DeadLetterConfig:
+          DeadLetterConfig:  ################## Configure DLQ
             Arn: !GetAtt DLQueue.Arn
-          RetryPolicy:
+          RetryPolicy:  ################## Configure Retry Policy
             MaximumEventAgeInSeconds: 60 # Must be greater than 60
             MaximumRetryAttempts: 4
       EventPattern:
