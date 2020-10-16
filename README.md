@@ -159,6 +159,11 @@ This template builds an HTTP APIs service integration to SQS with a Lambda funct
 This example demonstrates using the new API Gateway enhanced observability variables to get the full story of an API Gateway request and response.
 
 [Code](./api-enhanced-observability-variables/README.md)
+
+
+### EventBridge DLQ and retry policy config
+This template creates an HTTP API with a direct integration to the EventBridge default bus. It also creates an EventBridge rule with a Lambda function as a trigger. The template also configures a DLQ and a retry policy for the EventBridge rule.
+[Code](./eventbridge-dlq-retry/README.md)
 - - - - - - - - - - - - - - - - - - - - - - - -
 
 *See the full YouTube playlist [https://slip.link/sws-vids](https://slip.link/sws-vids)*

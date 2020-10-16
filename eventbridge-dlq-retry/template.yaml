@@ -1,0 +1,99 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: EventBridge DLQ
+
+Globals:
+  Function:
+    Timeout: 5
+    CodeUri: src/
+    Runtime: nodejs12.x
+
+Resources:
+  MyHttpApi:
+    Type: AWS::Serverless::HttpApi
+    Properties:
+      DefinitionBody:
+        'Fn::Transform':
+          Name: 'AWS::Include'
+          Parameters:
+            Location: './api.yaml'
+            
+  MyHttpApiRole:
+    Type: "AWS::IAM::Role"
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: "Allow"
+            Principal:
+              Service: "apigateway.amazonaws.com"
+            Action: 
+              - "sts:AssumeRole"
+      Policies:
+        - PolicyName: ApiDirectWriteEventBridge
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              Action:
+              - events:PutEvents
+              Effect: Allow
+              Resource:
+                - !Sub arn:aws:events:${AWS::Region}:${AWS::AccountId}:event-bus/default
+                
+  TriggeredFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: app.lambdaHandler
+      
+  DLQueue:
+    Type: AWS::SQS::Queue
+      
+  EBRule:
+    Type: AWS::Events::Rule
+    Properties:
+      RoleArn: !GetAtt EBRuleRole.Arn
+      Targets:
+        - Arn: !GetAtt TriggeredFunction.Arn
+          Id: lambdaTarget
+          DeadLetterConfig:
+            Arn: !GetAtt DLQueue.Arn
+          RetryPolicy:
+            MaximumEventAgeInSeconds: 60 # Must be greater than 60
+            MaximumRetryAttempts: 4
+      EventPattern:
+        source:
+          - "WebApp"
+        detail-type:
+          - "MyDetailType"
+          
+  EBRuleRole:
+    Type: "AWS::IAM::Role"
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: "Allow"
+            Principal:
+              Service: "events.amazonaws.com"
+            Action: 
+              - "sts:AssumeRole"
+      Policies:
+        - PolicyName: InvokeLambda
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              Action:
+              - lambda:InvokeLambda
+              Effect: Allow
+              Resource:
+                - !GetAtt TriggeredFunction.Arn
+        - PolicyName: WriteToSQS
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              Action:
+              - sqs:SendMessage
+              Effect: Allow
+              Resource:
+                - !GetAtt DLQueue.Arn
+                
