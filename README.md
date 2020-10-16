@@ -127,7 +127,7 @@ This session covers using the AWSSAM CLI custom build to use Makefiles in the bu
 
 ### Lambda Layers
 This session talks through using Lambda layers externally and internal to the application. It also covers local development with Layers.
-[Code](./lambda-layers/README.md) | [Video](https://youtu.be/BOq4gOu4-ak)
+[Code](./lambda-layers/README.md) | [Video](https://youtu.be/o72i8_FH320)
 
 
 # Additonal Templates
