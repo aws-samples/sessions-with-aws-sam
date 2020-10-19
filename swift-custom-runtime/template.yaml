@@ -7,7 +7,7 @@ Globals:
     Timeout: 10
     CodeUri: .
     Handler: swift.bootstrap
-    Runtime: provided
+    Runtime: provided.al2
     MemorySize: 512
 
 Resources:

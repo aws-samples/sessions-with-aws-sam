@@ -1,3 +1,3 @@
 build-HelloWorldFunction:
-	GOOS=linux go build
-	cp hello-world $(ARTIFACTS_DIR)/bootstrap
+	GOOS=linux go build -o bootstrap
+	cp ./bootstrap $(ARTIFACTS_DIR)/.
