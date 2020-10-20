@@ -136,19 +136,14 @@ These templates do not have an accompanying episode or it has not aired yet.
 
 ### HTTP API Access logging
 This template shows how to setup access logging on an HTTP API gateay.
-
 [Code](./http-api-logging/README.md)
 
 ### Building custom runtime - Swift example
-
 This projects builds two Lambda functions built with Swift. Squared is a simple Lambda that returns the squared value of a number. SwiftApi is a simple Lambda function that triggers from an HTTP API.
-
 [Code](./swift-custom-runtime/README.md)
 
 ### Running Go as a custom runtime on Amazon Linux 2
-
 This project demonstrates running Go on al2 with the new **provided.al2** custom runtime.
-
 [Code](./go-al2/README.md)
 
 ### HTTP APIs service integration blog example
@@ -157,13 +152,15 @@ This template builds an HTTP APIs service integration to SQS with a Lambda funct
 
 ### API Gateway enhanced observability variables
 This example demonstrates using the new API Gateway enhanced observability variables to get the full story of an API Gateway request and response.
-
 [Code](./api-enhanced-observability-variables/README.md)
-
 
 ### EventBridge DLQ and retry policy config
 This template creates an HTTP API with a direct integration to the EventBridge default bus. It also creates an EventBridge rule with a Lambda function as a trigger. The template also configures a DLQ and a retry policy for the EventBridge rule.
 [Code](./eventbridge-dlq-retry/README.md)
+
+### Using AWS AppConfig with AWS Lambda Extensions - Gunnar Grosch
+This is an example of how [AWS AppConfig](https://docs.aws.amazon.com/appconfig/latest/userguide/what-is-appconfig.html) can be used with [AWS Lambda](https://aws.amazon.com/lambda/) and [Lambda Extensions](https://aws.amazon.com/blogs/compute/introducing-aws-lambda-extensions-in-preview/). Using AppConfig to separate your application configuration from your application code is good practice. By using that, you are able to deploy configuration changes independently from your code. AWS AppConfig helps us achieve that.This example will deploy a sample serverless applications with AWS AppConfig and the AppConfig Lambda layer needed for AWS Lambda Extensions using AWS SAM.
+[Code](./appconfig-lambda-extensions/README.md)
 - - - - - - - - - - - - - - - - - - - - - - - -
 
 *See the full YouTube playlist [https://slip.link/sws-vids](https://slip.link/sws-vids)*
