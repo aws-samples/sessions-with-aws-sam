@@ -14,9 +14,9 @@ HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTIO
 OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. -->
 
-# AWS Ststems Manager Parameter Store & AWS SecretsManager
+# AWS Systems Manager Parameter Store & AWS Secrets Manager
 
 There are two templates in this project.
 
-1. Under the create-secrets folder, this template creates SSM and SecretesManager parameters.
+1. Under the create-secrets folder, this template creates SSM and Secrets Manager parameters.
 2. Under the app folder, this template creates a serverless application that utilizes the secrets in different ways.
