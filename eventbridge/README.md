@@ -16,4 +16,4 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. -->
 
 # EventBridge
 
-Creates a custom bus on EventBrdge and demonstrates pushing custom events and triggering on rules.
+Creates a custom bus on EventBridge and demonstrates pushing custom events and triggering on rules.
