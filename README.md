@@ -130,7 +130,7 @@ This session talks through using Lambda layers externally and internal to the ap
 [Code](./lambda-layers/README.md) | [Video](https://youtu.be/o72i8_FH320)
 
 
-# Additonal Templates
+# Additional Templates
 
 These templates do not have an accompanying episode or it has not aired yet.
 
