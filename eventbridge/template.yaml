@@ -78,6 +78,6 @@ Outputs:
     Description: "HTTP API endpoint URL"
     Value: !Sub "https://${ServerlessHttpApi}.execute-api.${AWS::Region}.amazonaws.com"
   MyNotificationArn:
-    Description: Topic ARN"
+    Description: "Topic ARN"
     Value: !Ref AWS::NotificationARNs
 
