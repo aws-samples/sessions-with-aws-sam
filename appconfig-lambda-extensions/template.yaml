@@ -1,0 +1,166 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: Using AWS AppConfig with AWS Lambda Extensions
+
+Parameters:
+  AppName:
+    Type: String
+    Description: Name of the application
+    Default: 'AppConfigLambda'
+
+Globals:
+  Function:
+    Timeout: 3
+
+Resources:
+  AppConfigLambdaFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: 
+      Handler: app.handler
+      Runtime: nodejs12.x
+      CodeUri: src/
+      Layers:
+          - !FindInMap [AppConfigLayer, !Ref "AWS::Region", ARN]
+      Policies:
+        - Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Action:
+                - appconfig:GetConfiguration
+              Resource:
+                - Fn::Join:
+                  - ''
+                  - - 'arn:aws:appconfig:*:*:application/'
+                    - Ref: AppConfigLambdaApplication
+                - Fn::Join:
+                  - ''
+                  - - 'arn:aws:appconfig:*:*:application/'
+                    - Ref: AppConfigLambdaApplication
+                    - '/configurationprofile/'
+                    - Ref: AppConfigLambdaConfigurationProfile
+                - Fn::Join:
+                  - ''
+                  - - 'arn:aws:appconfig:*:*:application/'
+                    - Ref: AppConfigLambdaApplication
+                    - '/environment/'
+                    - Ref: AppConfigLambdaEnvironment
+      Environment:
+        Variables:
+          APPCONFIG_APPLICATION: !Ref AppConfigLambdaApplication
+          APPCONFIG_ENVIRONMENT: !Ref AppConfigLambdaEnvironment
+          APPCONFIG_CONFIGURATION: !Ref AppConfigLambdaConfigurationProfile
+      #     AWS_APPCONFIG_EXTENSION_POLL_INTERVAL_SECONDS: 45
+      #     AWS_APPCONFIG_EXTENSION_POLL_TIMEOUT_MILLIS: 3000
+      #     AWS_APPCONFIG_EXTENSION_HTTP_PORT: 2772
+      Events:
+        AppConfigLambda:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref HttpApi
+            Path: /
+            Method: GET
+  HttpApi:
+    Type: AWS::Serverless::HttpApi
+    Properties:
+      FailOnWarnings: True
+  AppConfigLambdaApplication:
+    Type: 'AWS::AppConfig::Application'
+    Properties:
+      Name: !Ref AppName
+  AppConfigLambdaEnvironment:
+    Type: 'AWS::AppConfig::Environment'
+    Properties:
+      Name: !Ref AppName
+      ApplicationId: !Ref AppConfigLambdaApplication
+  AppConfigLambdaConfigurationProfile:
+    Type: 'AWS::AppConfig::ConfigurationProfile'
+    Properties:
+      Name: !Ref AppName
+      ApplicationId: !Ref AppConfigLambdaApplication
+      LocationUri: hosted
+      Validators:
+        - Content: '{ "$schema": "http://json-schema.org/draft-04/schema#", "type": "object", "properties": { "isEnabled": { "type": "boolean" }, "messageOption": { "type": "string", "minimum": 0 } }, "required": ["isEnabled", "messageOption"] }'
+          Type: JSON_SCHEMA
+  AppConfigLambdaConfigurationVersion:
+    Type: AWS::AppConfig::HostedConfigurationVersion
+    Properties:
+      ApplicationId: !Ref AppConfigLambdaApplication
+      ConfigurationProfileId: !Ref AppConfigLambdaConfigurationProfile
+      Content: '{ "isEnabled": false, "messageOption": "AppConfig" }'
+      ContentType: 'application/json'
+  AppConfigLambdaDeploymentStrategy:
+    Type: AWS::AppConfig::DeploymentStrategy
+    Properties: 
+      Name: !Ref AppName
+      DeploymentDurationInMinutes: 0
+      FinalBakeTimeInMinutes: 0
+      GrowthFactor: 100
+      GrowthType: LINEAR
+      ReplicateTo: NONE
+  AppConfigLambdaDeployment:
+    Type: AWS::AppConfig::Deployment
+    Properties: 
+      ApplicationId: !Ref AppConfigLambdaApplication
+      ConfigurationProfileId: !Ref AppConfigLambdaConfigurationProfile
+      ConfigurationVersion: !Ref AppConfigLambdaConfigurationVersion
+      DeploymentStrategyId: !Ref AppConfigLambdaDeploymentStrategy
+      EnvironmentId: !Ref AppConfigLambdaEnvironment
+
+Mappings:
+  AppConfigLayer: 
+    us-east-1:
+      ARN: arn:aws:lambda:us-east-1:027255383542:layer:AWS-AppConfig-Extension:1
+    us-east-2:
+      ARN: arn:aws:lambda:us-east-2:728743619870:layer:AWS-AppConfig-Extension:1
+    us-west-1:
+      ARN: arn:aws:lambda:us-west-1:958113053741:layer:AWS-AppConfig-Extension:1
+    us-west-2:
+      ARN: arn:aws:lambda:us-west-2:359756378197:layer:AWS-AppConfig-Extension:1
+    ca-central-1:
+      ARN: arn:aws:lambda:ca-central-1:039592058896:layer:AWS-AppConfig-Extension:1
+    eu-central-1:
+      ARN: arn:aws:lambda:eu-central-1:066940009817:layer:AWS-AppConfig-Extension:1
+    eu-west-1:
+      ARN: arn:aws:lambda:eu-west-1:434848589818:layer:AWS-AppConfig-Extension:1
+    eu-west-2:
+      ARN: arn:aws:lambda:eu-west-2:282860088358:layer:AWS-AppConfig-Extension:1
+    eu-west-3:
+      ARN: arn:aws:lambda:eu-west-3:493207061005:layer:AWS-AppConfig-Extension:1
+    eu-north-1:
+      ARN: arn:aws:lambda:eu-north-1:646970417810:layer:AWS-AppConfig-Extension:1
+    eu-south-1:
+      ARN: arn:aws:lambda:eu-south-1:203683718741:layer:AWS-AppConfig-Extension:1
+    ap-east-1:
+      ARN: arn:aws:lambda:ap-east-1:630222743974:layer:AWS-AppConfig-Extension:1
+    ap-northeast-1:
+      ARN: arn:aws:lambda:ap-northeast-1:980059726660:layer:AWS-AppConfig-Extension:1
+    ap-northeast-2:
+      ARN: arn:aws:lambda:ap-northeast-2:826293736237:layer:AWS-AppConfig-Extension:1
+    ap-southeast-1:
+      ARN: arn:aws:lambda:ap-southeast-1:421114256042:layer:AWS-AppConfig-Extension:1
+    ap-southeast-2:
+      ARN: arn:aws:lambda:ap-southeast-2:080788657173:layer:AWS-AppConfig-Extension:1
+    ap-south-1:
+      ARN: arn:aws:lambda:ap-south-1:554480029851:layer:AWS-AppConfig-Extension:1
+    sa-east-1:
+      ARN: arn:aws:lambda:sa-east-1:000010852771:layer:AWS-AppConfig-Extension:1
+    af-south-1:
+      ARN: arn:aws:lambda:af-south-1:574348263942:layer:AWS-AppConfig-Extension:1
+    me-south-1:
+      ARN: arn:aws:lambda:me-south-1:559955524753:layer:AWS-AppConfig-Extension:1
+
+Outputs:
+  HttpApiUrl:
+    Description: URL of your API endpoint
+    Value:
+      Fn::Sub: 'https://${HttpApi}.execute-api.${AWS::Region}.${AWS::URLSuffix}/'
+  AppConfigUrl:
+    Description: URL to your application in AppConfig
+    Value:
+      Fn::Sub: 'https://${AWS::Region}.console.aws.amazon.com/systems-manager/appconfig/applications/${AppConfigLambdaApplication}/'
+  AppConfigHostedConfigurationUrl:
+    Description: URL to your hosted configuration in AppConfig
+    Value:
+      Fn::Sub: 'https://${AWS::Region}.console.aws.amazon.com/systems-manager/appconfig/applications/${AppConfigLambdaApplication}/configurationprofiles/${AppConfigLambdaConfigurationProfile}/versions'
+      

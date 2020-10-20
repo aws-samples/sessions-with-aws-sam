@@ -1,0 +1,8 @@
+{
+  "name": "appconfig-lambda-extensions",
+  "version": "0.0.1",
+  "description": "",
+  "dependencies": {
+    "node-fetch": "^2.6.1"
+  }
+}
