@@ -15,11 +15,11 @@ OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. -->
 
 # Lambda Layers
-This session talks through using Lambda layers externally and internal to the application. It also covers local development with Layers.
+This session talks through using Lambda layers externally and internally to the application. It also covers local development with Layers.
 
-### Deploy layer repo first
+### Deploy layers repo first
 ```
-cd layer-repo
+cd layers-repo
 sam deploy -g
 ```
 
