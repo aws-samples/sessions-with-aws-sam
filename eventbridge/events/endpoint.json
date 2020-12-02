@@ -1,0 +1,3 @@
+{
+  "body":"{\"type\": \"translate\",\"data\": \"This string should be translated\",\"language\": \"es\"}"
+}

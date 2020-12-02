@@ -1,0 +1,5 @@
+{
+  "EndpointFunction": {
+    "EVENT_BUS_NAME": "SuperBus2"
+  }
+}

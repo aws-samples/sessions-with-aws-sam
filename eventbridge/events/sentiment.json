@@ -1,0 +1,10 @@
+{
+  "detail": {
+    "type":"translate",
+    "data":"Rob is really mean",
+    "language":"en"
+  },
+  "detailType": "translate",
+  "source": "TextEndpoint",
+  "eventBusName": "SuperBus2"
+}
