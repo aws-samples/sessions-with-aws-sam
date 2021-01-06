@@ -9,7 +9,7 @@
   "author": "Eric Johnson",
   "license": "ISC",
   "dependencies": {
-    "aws-sdk": "^2.771.0",
-    "axios": "^0.20.0"
+    "aws-sdk": "^2.823.0",
+    "axios": "^0.21.1"
   }
 }
