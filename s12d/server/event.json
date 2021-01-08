@@ -1,0 +1,20 @@
+{
+  "Records": [
+      {
+          "kinesis": {
+              "kinesisSchemaVersion": "1.0",
+              "partitionKey": "72d4c7ae-a478-4869-88ca-fec543085525",
+              "sequenceNumber": "49612007989316666290349620221681111134766024667059716098",
+              "data": "MTYwNDYxNzc4OS4wMDEJMjA5LjE2OS4xOTYuMTk3CTMwMQkvc2FtCVVTCg==",
+              "approximateArrivalTimestamp": 1604617793.447
+          },
+          "eventSource": "aws:kinesis",
+          "eventVersion": "1.0",
+          "eventID": "shardId-000000000000:49612007989316666290349620221681111134766024667059716098",
+          "eventName": "aws:kinesis:record",
+          "invokeIdentityArn": "arn:aws:iam::468083054740:role/s12d-url-shortener-beta-LoggingProcessorRole-176ZYVJFAO3A8",
+          "awsRegion": "us-east-1",
+          "eventSourceARN": "arn:aws:kinesis:us-east-1:468083054740:stream/s12d-url-shortener-beta-LoggingStream-15IOW5QPEWTEG"
+      }
+  ]
+}

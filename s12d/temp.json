@@ -1,0 +1,31 @@
+{
+  "LastEvaluatedKey": "IiI=",
+  "Items": [{
+      "id": "aws",
+      "url": "https://aws.amazon.com",
+      "timestamp": "28/Oct/2020:16:40:29 +0000",
+      "owner": "ericdj@amazon.com",
+      "clicks": "170306",
+      "regions": {
+        "DE": "13255"
+      },
+      "US": "157051"
+    }
+  },
+}
+/  { "id":"serverless", "url": "https:/ / aws.amazon.com / serverless ", "
+timestamp ": "
+27 / Oct / 2020: 22: 23: 17 + 0000 ", "
+owner ": "
+ericdj @amazon.com ", "
+clicks ": "
+168939 ", "
+regions ": {  "
+DE ":"
+13177 " },  "
+US ":"
+155762 " }  }, } /  { "
+id ":"
+sam ", "
+url ": "
+https: //aws.amazon.com/serverless/sam", "timestamp": "01/Nov/2020:05:10:55 +0000", "owner": "ericdj@amazon.com", "clicks": "167581", "regions": {  "DE":"13345" },  "US":"154236" }  } } / ]}
