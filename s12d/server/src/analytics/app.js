@@ -1,3 +1,6 @@
+// Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+// SPDX-License-Identifier: MIT-0
+
 const AWS = require('aws-sdk')
 const doc = new AWS.DynamoDB.DocumentClient();
 const table = process.env.TABLE_NAME;

@@ -1,3 +1,6 @@
+<!-- Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+SPDX-License-Identifier: MIT-0 -->
+
 <template>
   <div id="app">
     <nav class="mt-0 fixed w-full top-0 shadow-lg z-50">
