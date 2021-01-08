@@ -1,0 +1,203 @@
+# Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+# SPDX-License-Identifier: MIT-0
+
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: SAM Signed Url Generator
+
+Globals:
+  Function:
+    Timeout: 3
+    Handler: app.handler
+    Runtime: nodejs12.x
+    Tracing: Active
+    Environment:
+        Variables:
+          STORAGE_BUCKET: !Ref storageBucket
+          URL_TABLE: !Ref urlTable
+
+Resources:
+
+  # Amazon S3 storage bucket for uploaded files
+  storageBucket:
+    Type: AWS::S3::Bucket
+
+  # Amazon DynamoDB table to store short urls
+  urlTable:
+    Type: AWS::Serverless::SimpleTable
+
+  # AWS Lambda function to generate the signed upload URL
+  uploadSignerLambda:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: lambda/uploadSigner/
+      Policies:
+        - S3WritePolicy:
+            BucketName: !Ref storageBucket
+
+  # AWS Lambda function to generate the signed download URL
+  downloadSignerLambda:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: lambda/downloadSigner/
+      Policies:
+        - S3ReadPolicy:
+            BucketName: !Ref storageBucket
+
+  # AWS Lambda function to process the shortened URL
+  fetchedShortUrlLambda:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: lambda/fetchShortUrl/
+      Policies:
+        DynamoDBReadPolicy:
+          TableName: !Ref urlTable
+      Events:
+        ApiEvent:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref httpApi
+            Path: /{id}
+            Method: GET
+
+  # AWS Step Functions state machine and
+  # Step Functions tasks
+  urlStateMachine:
+    Type: AWS::Serverless::StateMachine
+    Properties:
+      Type: EXPRESS
+      Tracing:
+        Enabled: true
+      Definition:
+        StartAt: Generate Signed URLs
+        States:
+          Generate Signed URLs:
+            Type: Parallel
+            Comment: Fetches a signed upload and download URL for the given Key
+            Next: formatResults
+            Branches:
+            - StartAt: GetUploadSignedUrl
+              States:
+                GetUploadSignedUrl:
+                  End: true
+                  Retry:
+                  - ErrorEquals:
+                    - Lambda.ServiceException
+                    - Lambda.AWSLambdaException
+                    - Lambda.SdkClientException
+                    IntervalSeconds: 2
+                    MaxAttempts: 6
+                    BackoffRate: 2
+                  Type: Task
+                  ResultPath: "$.UploadSignResults"
+                  Resource: arn:aws:states:::lambda:invoke
+                  Parameters:
+                    FunctionName: "${GetUploadSignerFunction}"
+                    Payload.$: "$"
+            - StartAt: GetDownloadSignedUrl
+              States:
+                GetDownloadSignedUrl:
+                  Next: WriteToDynamoDB
+                  Retry:
+                  - ErrorEquals:
+                    - Lambda.ServiceException
+                    - Lambda.AWSLambdaException
+                    - Lambda.SdkClientException
+                    IntervalSeconds: 2
+                    MaxAttempts: 6
+                    BackoffRate: 2
+                  Type: Task
+                  OutputPath: "$"
+                  ResultPath: "$.DownloadSignResults"
+                  Resource: arn:aws:states:::lambda:invoke
+                  Parameters:
+                    FunctionName: "${GetDownloadSignerFunction}"
+                    Payload.$: "$"
+                WriteToDynamoDB:
+                  End: true
+                  Type: Task
+                  OutputPath: "$"
+                  ResultPath: "$.DynamoResults"
+                  Resource: "${DDBPutItem}"
+                  Parameters:
+                    Item:
+                      id:
+                        S.$: "$.DownloadSignResults.Payload.id"
+                      signedUrl:
+                        S.$: "$.DownloadSignResults.Payload.signedUrl"
+                      TTL:
+                        N.$: "$.DownloadSignResults.Payload.ttl"
+                    TableName: "${DDBTable}"
+          formatResults:
+            Type: Pass
+            Parameters:
+              UploadUrl.$: "$[0].UploadSignResults.Payload.signedUrl"
+              DownloadUrl.$: "$[1].DownloadSignResults.Payload.signedUrl"
+              DownloadShortId.$: "$[1].DownloadSignResults.Payload.id"
+            End: true
+        TimeoutSeconds: 30
+      Policies:
+        - DynamoDBWritePolicy:
+            TableName: !Ref urlTable
+        - LambdaInvokePolicy:
+            FunctionName: !Ref uploadSignerLambda
+        - LambdaInvokePolicy:
+            FunctionName: !Ref downloadSignerLambda
+      DefinitionSubstitutions:
+        DDBPutItem: !Sub arn:${AWS::Partition}:states:::dynamodb:putItem
+        DDBTable: !Ref urlTable
+        GetUploadSignerFunction: !GetAtt uploadSignerLambda.Arn
+        GetDownloadSignerFunction: !GetAtt downloadSignerLambda.Arn
+
+  # IAM role for HTTP APIs
+  httpApiRole:
+    Type: "AWS::IAM::Role"
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: "Allow"
+            Principal:
+              Service: "apigateway.amazonaws.com"
+            Action: 
+              - "sts:AssumeRole"
+      Policies:
+        - PolicyName: ApiDirectWriteToSQS
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              Action:
+              - states:StartSyncExecution
+              Effect: Allow
+              Resource:
+                - !Ref urlStateMachine
+
+  # Amazon API Gateway HTTP APIs and
+  # OpenAPI definition to handle AWS Integration
+  httpApi:
+    Type: AWS::Serverless::HttpApi
+    Properties:
+      DefinitionBody:
+        openapi: 3.0.1
+        info:
+          title: Signed URL Generator - Built with AWS SAM
+        paths:
+          "/":
+            post:
+              responses:
+                default:
+                  description: Step Function Response
+              x-amazon-apigateway-integration:
+                integrationSubtype: StepFunctions-StartSyncExecution
+                credentials: !GetAtt httpApiRole.Arn
+                requestParameters:
+                  Input: "$request.body"
+                  StateMachineArn: !GetAtt urlStateMachine.Arn
+                payloadFormatVersion: '1.0'
+                type: aws_proxy
+                connectionType: INTERNET
+
+# Outputs
+Outputs:
+  apiUrlOut:
+    Value: !Sub "https://${httpApi}.execute-api.${AWS::Region}.amazonaws.com"
