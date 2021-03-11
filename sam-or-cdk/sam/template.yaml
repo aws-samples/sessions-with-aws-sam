@@ -17,14 +17,24 @@ Globals:
           URL_TABLE: !Ref urlTable
 
 Resources:
-
   # Amazon S3 storage bucket for uploaded files
   storageBucket:
     Type: AWS::S3::Bucket
 
   # Amazon DynamoDB table to store short urls
   urlTable:
-    Type: AWS::Serverless::SimpleTable
+    Type: AWS::DynamoDB::Table
+    Properties:
+      BillingMode: PAY_PER_REQUEST
+      KeySchema:
+        - AttributeName: id
+          KeyType: HASH
+      AttributeDefinitions:
+        - AttributeName: id
+          AttributeType: S
+      TimeToLiveSpecification:
+        AttributeName: TTL
+        Enabled: true
 
   # AWS Lambda function to generate the signed upload URL
   uploadSignerLambda:
