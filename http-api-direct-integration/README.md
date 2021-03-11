@@ -25,7 +25,7 @@ This template demonstrates using the new HTTP APIs direct integration to an Amaz
 
 The *api.yaml* file contains the OpenAPI definition for the direct integration.
 
-## Deployement
+## Deployment
 From this folder run:
 ```bash
 sam deploy -g
