@@ -1,0 +1,139 @@
+AWSTemplateFormatVersion: 2010-09-09
+Transform: AWS::Serverless-2016-10-31
+Description: Multi level base path mapping
+
+Parameters:
+  DomainName:
+    Type: String
+    Description: Domian name for api
+  ZoneId:
+    Type: String
+    Description: Zone ID 
+    Default: none
+  CertArn:
+    Type: String
+    Description: Certificate ARN
+    Default: none
+
+Globals:
+  Function:
+    Handler: index.handler
+    Runtime: nodejs12.x
+
+Resources:
+  CustomDomainName: # Creates the domain name
+    Type: AWS::ApiGatewayV2::DomainName
+    Properties:
+      DomainName: !Ref DomainName
+      DomainNameConfigurations: 
+        - EndpointType: REGIONAL
+          CertificateArn: !Ref CertArn
+
+  ReportingV1Mapping: # Creates the mapping for Reporting V1
+    Type: AWS::ApiGatewayV2::ApiMapping
+    DependsOn: ReportingAPIV1ApiGatewayDefaultStage
+    Properties: 
+      ApiId: !Ref ReportingAPIV1
+      ApiMappingKey: salesreportingv1
+      DomainName: !Ref CustomDomainName
+      Stage: $default #!Ref ReportingAPIV1ApiGatewayDefaultStage ## = {HTTP API LogicalName} + ApiGateway + {StageName} + Stage
+
+  ReportingV2Mapping: # Creates the mapping for Reporting V1
+    Type: AWS::ApiGatewayV2::ApiMapping
+    DependsOn: ReportingAPIV2ApiGatewayDefaultStage
+    Properties: 
+      ApiId: !Ref ReportingAPIV2
+      ApiMappingKey: salesreportingv2
+      DomainName: !Ref CustomDomainName
+      Stage: $default #!Ref ReportingAPIV2ApiGatewayDefaultStage ## = {HTTP API LogicalName} + ApiGateway + {StageName} + Stage
+
+  AdminMapping: #Creates the mapping for Admin
+    Type: AWS::ApiGatewayV2::ApiMapping
+    DependsOn: AdminAPIProdStage
+    Properties: 
+      ApiId: !Ref AdminAPI
+      ApiMappingKey: corp-admin
+      DomainName: !Ref CustomDomainName
+      Stage: Prod #!Ref AdminAPIProdStage  ## = {REST API Logicalname} + {StageName} + Stage
+
+  ReportingAPIV1: # Reporting V1 endpoint
+    Type: AWS::Serverless::HttpApi
+    Properties:
+      Description: Reporting API V1
+  
+  ReportingAPIV2: # Reporting V1 endpoint
+    Type: AWS::Serverless::HttpApi
+    roperties:
+      Description: Reporting API V2
+
+  AdminAPI: # Admin endpoint
+    Type: AWS::Serverless::Api
+    Properties:
+      Description: Administrative API
+      StageName: Prod
+      EndpointConfiguration:
+        Type: REGIONAL
+
+  RegionalReporting: # Regional reporting function
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: src/regional-reporting
+      Handler: index.handler
+      Runtime: nodejs12.x
+      Events:
+        RegionalReporting:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref ReportingAPIV1
+            Method: GET
+            Path: /regional/
+
+  GlobalReportingV1: # Global reporting V1 function
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: src/global-reportingv1
+      Handler: index.handler
+      Runtime: nodejs12.x
+      Events:
+        GlobalReportingV1:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref ReportingAPIV1
+            Method: GET
+            Path: /global/
+  
+  GlobalReportingV2: # Global reporting V2 function
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: src/global-reportingv2
+      Handler: index.handler
+      Runtime: nodejs12.x
+      Events:
+        GlobalReportingV2:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref ReportingAPIV2
+            Method: GET
+            Path: /global/
+
+  AdminFunction:  # Integration Lambda function for the Rest API
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: src/admin/
+      Events:
+        CorpAdministration:
+          Type: Api
+          Properties:
+            RestApiId: !Ref AdminAPI
+            Method: GET
+            Path: /
+
+  DomainRecordSet: # Creates a record set in the hosted zone for the
+    Type: AWS::Route53::RecordSet
+    Properties:
+      Name: !Ref DomainName
+      HostedZoneId: !Ref ZoneId
+      AliasTarget: 
+        DNSName: !GetAtt CustomDomainName.RegionalDomainName
+        HostedZoneId: !GetAtt CustomDomainName.RegionalHostedZoneId
+      Type: A
