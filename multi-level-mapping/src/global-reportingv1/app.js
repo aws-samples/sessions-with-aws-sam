@@ -1,3 +1,3 @@
 exports.handler = async (event) => {
-  return {message:'You have reached global reporting V2'}
+  return {message:'You have reached global reporting V1'}
 };

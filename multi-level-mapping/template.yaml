@@ -17,7 +17,7 @@ Parameters:
 
 Globals:
   Function:
-    Handler: index.handler
+    Handler: app.handler
     Runtime: nodejs12.x
 
 Resources:
@@ -34,7 +34,7 @@ Resources:
     DependsOn: ReportingAPIV1ApiGatewayDefaultStage
     Properties: 
       ApiId: !Ref ReportingAPIV1
-      ApiMappingKey: salesreportingv1
+      ApiMappingKey: salesreporting
       DomainName: !Ref CustomDomainName
       Stage: $default #!Ref ReportingAPIV1ApiGatewayDefaultStage ## = {HTTP API LogicalName} + ApiGateway + {StageName} + Stage
 
@@ -63,7 +63,7 @@ Resources:
   
   ReportingAPIV2: # Reporting V1 endpoint
     Type: AWS::Serverless::HttpApi
-    roperties:
+    Properties:
       Description: Reporting API V2
 
   AdminAPI: # Admin endpoint
@@ -78,43 +78,37 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       CodeUri: src/regional-reporting
-      Handler: index.handler
-      Runtime: nodejs12.x
       Events:
         RegionalReporting:
           Type: HttpApi
           Properties:
             ApiId: !Ref ReportingAPIV1
             Method: GET
-            Path: /regional/
+            Path: /regional
 
   GlobalReportingV1: # Global reporting V1 function
     Type: AWS::Serverless::Function
     Properties:
       CodeUri: src/global-reportingv1
-      Handler: index.handler
-      Runtime: nodejs12.x
       Events:
         GlobalReportingV1:
           Type: HttpApi
           Properties:
             ApiId: !Ref ReportingAPIV1
             Method: GET
-            Path: /global/
+            Path: /global
   
   GlobalReportingV2: # Global reporting V2 function
     Type: AWS::Serverless::Function
     Properties:
       CodeUri: src/global-reportingv2
-      Handler: index.handler
-      Runtime: nodejs12.x
       Events:
         GlobalReportingV2:
           Type: HttpApi
           Properties:
             ApiId: !Ref ReportingAPIV2
             Method: GET
-            Path: /global/
+            Path: /global
 
   AdminFunction:  # Integration Lambda function for the Rest API
     Type: AWS::Serverless::Function
