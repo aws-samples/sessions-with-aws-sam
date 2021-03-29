@@ -1,0 +1,44 @@
+AWSTemplateFormatVersion: 2010-09-09
+Transform: AWS::Serverless-2016-10-31
+Description: Multi level base path mapping
+
+Parameters:
+  DomainName:
+    Type: String
+    Description: Domian name for api
+
+Globals:
+  Function:
+    Handler: app.handler
+    Runtime: nodejs12.x
+
+Resources:
+  
+  AdminMapping: #Creates the mapping for Admin
+    Type: AWS::ApiGatewayV2::ApiMapping
+    DependsOn: AdminAPIProdStage
+    Properties: 
+      ApiId: !Ref AdminAPI
+      ApiMappingKey: corp/admin
+      DomainName: !Ref DomainName
+      Stage: Prod
+
+  AdminAPI: # Admin endpoint
+    Type: AWS::Serverless::Api
+    Properties:
+      Description: Administrative API
+      StageName: Prod
+      EndpointConfiguration:
+        Type: REGIONAL
+
+  AdminFunction:  # Administration function
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: src/admin/
+      Events:
+        CorpAdministration:
+          Type: Api
+          Properties:
+            RestApiId: !Ref AdminAPI
+            Method: GET
+            Path: /

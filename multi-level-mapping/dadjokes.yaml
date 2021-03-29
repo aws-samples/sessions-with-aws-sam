@@ -1,0 +1,42 @@
+AWSTemplateFormatVersion: 2010-09-09
+Transform: AWS::Serverless-2016-10-31
+Description: Dad jokes API
+
+Parameters:
+  DomainName:
+    Type: String
+    Description: Domian name for api
+
+Resources:
+  ReportingV1Mapping: # Creates the mapping for Reporting V1
+    Type: AWS::ApiGatewayV2::ApiMapping
+    DependsOn: ReportingAPIV1ApiGatewayDefaultStage
+    Properties: 
+      ApiId: !Ref ReportingAPIV1
+      ApiMappingKey: corp/jokes
+      DomainName: !Ref DomainName
+      Stage: $default
+
+  ReportingAPIV1: # Reporting V1 endpoint
+    Type: AWS::Serverless::HttpApi
+    Properties:
+      Description: Jokes API
+      DefinitionBody:
+        openapi: "3.0.1"
+        info:
+          title: "Corp Dad Jokes"
+        paths:
+          /:
+            get:
+              responses:
+                default:
+                  description: "Default response for GET /"
+              x-amazon-apigateway-integration:
+                requestParameters:
+                  overwrite:header.Accept: "application/json"
+                payloadFormatVersion: "1.0"
+                type: "http_proxy"
+                httpMethod: "ANY"
+                uri: "https://icanhazdadjoke.com/"
+                connectionType: "INTERNET"
+        x-amazon-apigateway-importexport-version: "1.0"

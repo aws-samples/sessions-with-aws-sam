@@ -1,0 +1,53 @@
+AWSTemplateFormatVersion: 2010-09-09
+Transform: AWS::Serverless-2016-10-31
+Description: Sales reporting application V1
+
+Parameters:
+  DomainName:
+    Type: String
+    Description: Domian name for api
+
+Globals:
+  Function:
+    Handler: app.handler
+    Runtime: nodejs12.x
+
+Resources:
+  ReportingV1Mapping: # Creates the mapping for Reporting V1
+    Type: AWS::ApiGatewayV2::ApiMapping
+    DependsOn: ReportingAPIV1ApiGatewayDefaultStage
+    Properties: 
+      ApiId: !Ref ReportingAPIV1
+      ApiMappingKey: sales/reporting
+      DomainName: !Ref DomainName
+      Stage: $default
+
+  ReportingAPIV1: # Reporting V1 endpoint
+    Type: AWS::Serverless::HttpApi
+    Properties:
+      Description: Reporting API V1
+      DisableExecuteApiEndpoint: true
+
+  RegionalReporting: # Regional reporting function
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: src/regional-reporting
+      Events:
+        RegionalReporting:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref ReportingAPIV1
+            Method: GET
+            Path: /regional
+
+  GlobalReportingV1: # Global reporting V1 function
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: src/global-reportingv1
+      Events:
+        GlobalReportingV1:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref ReportingAPIV1
+            Method: GET
+            Path: /global

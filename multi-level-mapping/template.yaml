@@ -15,11 +15,6 @@ Parameters:
     Description: Certificate ARN
     Default: none
 
-Globals:
-  Function:
-    Handler: app.handler
-    Runtime: nodejs12.x
-
 Resources:
   CustomDomainName: # Creates the domain name
     Type: AWS::ApiGatewayV2::DomainName
@@ -29,100 +24,7 @@ Resources:
         - EndpointType: REGIONAL
           CertificateArn: !Ref CertArn
 
-  ReportingV1Mapping: # Creates the mapping for Reporting V1
-    Type: AWS::ApiGatewayV2::ApiMapping
-    DependsOn: ReportingAPIV1ApiGatewayDefaultStage
-    Properties: 
-      ApiId: !Ref ReportingAPIV1
-      ApiMappingKey: salesreporting
-      DomainName: !Ref CustomDomainName
-      Stage: $default #!Ref ReportingAPIV1ApiGatewayDefaultStage ## = {HTTP API LogicalName} + ApiGateway + {StageName} + Stage
-
-  ReportingV2Mapping: # Creates the mapping for Reporting V1
-    Type: AWS::ApiGatewayV2::ApiMapping
-    DependsOn: ReportingAPIV2ApiGatewayDefaultStage
-    Properties: 
-      ApiId: !Ref ReportingAPIV2
-      ApiMappingKey: salesreportingv2
-      DomainName: !Ref CustomDomainName
-      Stage: $default #!Ref ReportingAPIV2ApiGatewayDefaultStage ## = {HTTP API LogicalName} + ApiGateway + {StageName} + Stage
-
-  AdminMapping: #Creates the mapping for Admin
-    Type: AWS::ApiGatewayV2::ApiMapping
-    DependsOn: AdminAPIProdStage
-    Properties: 
-      ApiId: !Ref AdminAPI
-      ApiMappingKey: corp-admin
-      DomainName: !Ref CustomDomainName
-      Stage: Prod #!Ref AdminAPIProdStage  ## = {REST API Logicalname} + {StageName} + Stage
-
-  ReportingAPIV1: # Reporting V1 endpoint
-    Type: AWS::Serverless::HttpApi
-    Properties:
-      Description: Reporting API V1
-  
-  ReportingAPIV2: # Reporting V1 endpoint
-    Type: AWS::Serverless::HttpApi
-    Properties:
-      Description: Reporting API V2
-
-  AdminAPI: # Admin endpoint
-    Type: AWS::Serverless::Api
-    Properties:
-      Description: Administrative API
-      StageName: Prod
-      EndpointConfiguration:
-        Type: REGIONAL
-
-  RegionalReporting: # Regional reporting function
-    Type: AWS::Serverless::Function
-    Properties:
-      CodeUri: src/regional-reporting
-      Events:
-        RegionalReporting:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref ReportingAPIV1
-            Method: GET
-            Path: /regional
-
-  GlobalReportingV1: # Global reporting V1 function
-    Type: AWS::Serverless::Function
-    Properties:
-      CodeUri: src/global-reportingv1
-      Events:
-        GlobalReportingV1:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref ReportingAPIV1
-            Method: GET
-            Path: /global
-  
-  GlobalReportingV2: # Global reporting V2 function
-    Type: AWS::Serverless::Function
-    Properties:
-      CodeUri: src/global-reportingv2
-      Events:
-        GlobalReportingV2:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref ReportingAPIV2
-            Method: GET
-            Path: /global
-
-  AdminFunction:  # Integration Lambda function for the Rest API
-    Type: AWS::Serverless::Function
-    Properties:
-      CodeUri: src/admin/
-      Events:
-        CorpAdministration:
-          Type: Api
-          Properties:
-            RestApiId: !Ref AdminAPI
-            Method: GET
-            Path: /
-
-  DomainRecordSet: # Creates a record set in the hosted zone for the
+  DomainRecordSet: # Creates a record set in the hosted zone for the domain
     Type: AWS::Route53::RecordSet
     Properties:
       Name: !Ref DomainName
@@ -131,3 +33,24 @@ Resources:
         DNSName: !GetAtt CustomDomainName.RegionalDomainName
         HostedZoneId: !GetAtt CustomDomainName.RegionalHostedZoneId
       Type: A
+
+  ReportingV1App:
+    Type: AWS::Serverless::Application
+    Properties:
+      Location: ./reportingv1.yaml
+      Parameters:
+        DomainName: !Ref CustomDomainName
+
+  ReportingV2App:
+    Type: AWS::Serverless::Application
+    Properties:
+      Location: ./reportingv2.yaml
+      Parameters:
+        DomainName: !Ref CustomDomainName
+
+  AdminApp:
+    Type: AWS::Serverless::Application
+    Properties:
+      Location: ./admin.yaml
+      Parameters:
+        DomainName: !Ref CustomDomainName
