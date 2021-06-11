@@ -1,0 +1,466 @@
+# Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+# SPDX-License-Identifier: MIT-0
+
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: Functionless URL Shortner
+
+###################################################################################################
+##   Template Parameters                                                                         ##
+###################################################################################################
+Parameters:
+  AppName:
+    Type: String
+    Description: Name of application (no spaces). Value must be globally unique
+    Default: shortener
+  UseLocalClient:
+    Type: String
+    Description: Enables public client and local client for testing. (Less secure)
+    Default: 'false'
+  CustomDomain:
+    Type: String
+    Description: Custom domain added to client
+    Default: none
+  ClientAddress:
+    Description: URL for client
+    Type: String
+
+###################################################################################################
+##   Template Conditions                                                                         ##
+###################################################################################################
+Conditions:
+  IsLocal: !Equals [!Ref UseLocalClient, 'true']
+
+###################################################################################################
+##   Template Resources                                                                          ##
+###################################################################################################
+Resources:
+  ##   API Gateway                                                                                 
+  SiteAPI:
+    Type: AWS::Serverless::Api
+    Properties:
+      StageName: Prod
+      EndpointConfiguration: REGIONAL
+      TracingEnabled: true
+      MethodSettings:
+        - HttpMethod: "*"
+          ResourcePath: "/*"
+          LoggingLevel: INFO
+          DataTraceEnabled: true
+          MetricsEnabled: true
+          ThrottlingRateLimit: 2000
+          ThrottlingBurstLimit: 1000
+        - HttpMethod: "GET"
+          ResourcePath: "/{linkId}"
+          ThrottlingRateLimit: 10000
+          ThrottlingBurstLimit: 4000
+      DefinitionBody:
+        'Fn::Transform':
+          Name: 'AWS::Include'
+          Parameters:
+            Location: './api.yaml'
+
+  ##   URL DynamoDB Table
+  LinkTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      BillingMode: PAY_PER_REQUEST
+      KeySchema:
+        - AttributeName: id
+          KeyType: HASH
+      AttributeDefinitions:
+        - AttributeName: id
+          AttributeType: S
+        - AttributeName: owner
+          AttributeType: S
+      GlobalSecondaryIndexes:
+        - IndexName: OwnerIndex
+          KeySchema:
+            - AttributeName: owner
+              KeyType: HASH
+          Projection:
+            ProjectionType: ALL
+  
+  ##   Cognito user pool
+  UserPool:
+    Type: AWS::Cognito::UserPool 
+    Properties: 
+      UserPoolName: !Sub ${AppName}-UserPool 
+      Policies: 
+        PasswordPolicy: 
+          MinimumLength: 8
+      AutoVerifiedAttributes:
+        - email
+      UsernameAttributes: 
+        - email 
+      Schema: 
+        - AttributeDataType: String 
+          Name: email 
+          Required: false
+
+  ##   Cognito user pool domain
+  UserPoolDomain:
+    Type: AWS::Cognito::UserPoolDomain
+    Properties: 
+      Domain: !Sub ${AppName}-${AWS::AccountId}
+      UserPoolId: !Ref UserPool
+
+  ##   Cognito user pool client
+  UserPoolClient:
+    Type: AWS::Cognito::UserPoolClient 
+    Properties: 
+      UserPoolId: !Ref UserPool 
+      ClientName: !Sub ${AppName}-UserPoolClient 
+      GenerateSecret: false
+      SupportedIdentityProviders:
+        - COGNITO
+      CallbackURLs:
+        - !Sub https://${CustomDomain}
+        - !If [IsLocal, http://localhost:8080, !Ref "AWS::NoValue"]
+      LogoutURLs:
+        - !Sub https://${CustomDomain}
+        - !If [IsLocal, http://localhost:8080, !Ref "AWS::NoValue"]
+      AllowedOAuthFlowsUserPoolClient: true
+      AllowedOAuthFlows:
+        - code
+      AllowedOAuthScopes:
+        - email
+        - openid
+
+  CloudFrontCachePolicyAPI:
+    Type: AWS::CloudFront::CachePolicy
+    Properties:
+      CachePolicyConfig:
+        DefaultTTL: 30
+        MinTTL: 0
+        MaxTTL: 60
+        Name: !Sub ${AppName}-API
+        ParametersInCacheKeyAndForwardedToOrigin:
+          CookiesConfig:
+            CookieBehavior: none
+          EnableAcceptEncodingBrotli: true
+          EnableAcceptEncodingGzip: true
+          HeadersConfig:
+            HeaderBehavior: whitelist
+            Headers:
+              - Authorization
+          QueryStringsConfig:
+            QueryStringBehavior: all
+
+  CloudFrontCachePolicyClient:
+    Type: AWS::CloudFront::CachePolicy
+    Properties:
+      CachePolicyConfig:
+        DefaultTTL: 3600
+        MinTTL: 1
+        MaxTTL: 31536000
+        Name: !Sub ${AppName}-client
+        ParametersInCacheKeyAndForwardedToOrigin:
+          CookiesConfig:
+            CookieBehavior: none
+          EnableAcceptEncodingBrotli: true
+          EnableAcceptEncodingGzip: true
+          HeadersConfig:
+            HeaderBehavior: none
+          QueryStringsConfig:
+            QueryStringBehavior: all
+
+  CloudFrontCachePolicyDefault:
+    Type: AWS::CloudFront::CachePolicy
+    Properties:
+      CachePolicyConfig:
+        DefaultTTL: 900 # 15 Minutes
+        MinTTL: 1
+        MaxTTL: 10800 # 2 hours
+        Name: !Sub ${AppName}-default
+        ParametersInCacheKeyAndForwardedToOrigin:
+          CookiesConfig:
+            CookieBehavior: none
+          EnableAcceptEncodingBrotli: true
+          EnableAcceptEncodingGzip: true
+          HeadersConfig:
+            HeaderBehavior: none
+          QueryStringsConfig:
+            QueryStringBehavior: none
+
+
+  ##   CloudFront distribution
+  CloudFrontDistro:
+    Type: AWS::CloudFront::Distribution
+    Properties: 
+      DistributionConfig:
+        Aliases:
+          - !Ref CustomDomain
+        Comment: !Sub URL Shortener CDN - ${CustomDomain}
+        CacheBehaviors:
+          - AllowedMethods: ["DELETE", "GET", "HEAD", "OPTIONS", "PATCH", "POST", "PUT"]
+            CachedMethods: ["GET", "HEAD", "OPTIONS"]
+            CachePolicyId: !Ref CloudFrontCachePolicyAPI
+            Compress: true
+            PathPattern: /app/*
+            TargetOriginId: "URLShortenerAPIGW"
+            ViewerProtocolPolicy: redirect-to-https
+          - AllowedMethods: ["DELETE", "GET", "HEAD", "OPTIONS", "PATCH", "POST", "PUT"]
+            CachedMethods: ["GET", "HEAD", "OPTIONS"]
+            CachePolicyId: !Ref CloudFrontCachePolicyAPI
+            Compress: true
+            PathPattern: /app/
+            TargetOriginId: "URLShortenerAPIGW"
+            ViewerProtocolPolicy: redirect-to-https
+          - AllowedMethods: ["GET", "HEAD", "OPTIONS"]
+            CachedMethods: ["GET", "HEAD", "OPTIONS"]
+            CachePolicyId: !Ref CloudFrontCachePolicyClient
+            Compress: true
+            PathPattern: /s12dAssetsDirectory/*
+            TargetOriginId: "AmplifyClient"
+            ViewerProtocolPolicy: redirect-to-https
+          - AllowedMethods: ["GET", "HEAD", "OPTIONS"]
+            CachedMethods: ["GET", "HEAD", "OPTIONS"]
+            CachePolicyId: !Ref CloudFrontCachePolicyClient
+            Compress: true
+            PathPattern: /client/*
+            TargetOriginId: "AmplifyClient"
+            ViewerProtocolPolicy: redirect-to-https
+          - AllowedMethods: ["GET", "HEAD", "OPTIONS"]
+            CachedMethods: ["GET", "HEAD", "OPTIONS"]
+            CachePolicyId: !Ref CloudFrontCachePolicyClient
+            Compress: true
+            PathPattern: /*.ico
+            TargetOriginId: "AmplifyClient"
+            ViewerProtocolPolicy: redirect-to-https
+          - AllowedMethods: ["GET", "HEAD", "OPTIONS"]
+            CachedMethods: ["GET", "HEAD", "OPTIONS"]
+            CachePolicyId: !Ref CloudFrontCachePolicyClient
+            Compress: true
+            PathPattern: /
+            TargetOriginId: "AmplifyClient"
+            ViewerProtocolPolicy: redirect-to-https
+        DefaultCacheBehavior:
+          AllowedMethods: ["GET", "HEAD"]
+          CachedMethods: ["GET", "HEAD"]
+          CachePolicyId: !Ref CloudFrontCachePolicyDefault
+          Compress: false
+          RealtimeLogConfigArn: !GetAtt CloudFrontLogDistro.Arn
+          TargetOriginId: "URLShortenerAPIGW"
+          ViewerProtocolPolicy: redirect-to-https
+        CustomErrorResponses:
+        - ErrorCachingMinTTL: 0
+          ErrorCode: 400
+        - ErrorCachingMinTTL: 1
+          ErrorCode: 403
+        - ErrorCachingMinTTL: 5
+          ErrorCode: 500
+        Logging:
+          Bucket: !GetAtt CloudFrontAccessLogsBucket.DomainName
+        Enabled: true
+        Origins:
+          - CustomOriginConfig:
+              OriginProtocolPolicy: https-only
+            DomainName: !Sub ${SiteAPI}.execute-api.${AWS::Region}.amazonaws.com
+            Id: "URLShortenerAPIGW"
+            OriginPath: /Prod
+          - CustomOriginConfig:
+              OriginProtocolPolicy: https-only
+            DomainName: !Ref ClientAddress
+            Id: "AmplifyClient"
+        ViewerCertificate:
+          AcmCertificateArn: '{{resolve:ssm:/acm/cert/s12d-com:1}}'
+          SslSupportMethod: sni-only
+
+  CloudFrontLogDistro:
+    Type: AWS::CloudFront::RealtimeLogConfig
+    Properties:
+      EndPoints:
+        - KinesisStreamConfig:
+            StreamArn: !GetAtt LoggingStream.Arn
+            RoleArn: !GetAtt LoggingRole.Arn
+          StreamType: Kinesis
+      Fields:
+        - timestamp
+        - c-ip
+        - sc-status
+        - cs-uri-stem
+        - c-country
+      Name: !Sub LoggingConfig-${AppName}
+      SamplingRate: 100
+  
+  LoggingStream:
+    Type: AWS::Kinesis::Stream
+    Properties:
+      ShardCount: 1
+
+  LoggingRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: "Allow"
+            Principal:
+              Service: "cloudfront.amazonaws.com"
+            Action: 
+              - "sts:AssumeRole"
+      Policies:
+        - PolicyName: CloudFrontLogToKinesis
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              Action:
+              - kinesis:Put*
+              - kinesis:List*
+              Effect: Allow
+              Resource: !GetAtt LoggingStream.Arn
+
+  LoggingProcessor:
+    Type: AWS::Serverless::Function
+    Properties:
+      Runtime: nodejs12.x
+      CodeUri: src/analytics/
+      Handler: app.handler
+      MemorySize: 1024
+      Timeout: 45
+      Tracing: Active
+      Policies:
+        - DynamoDBWritePolicy:
+            TableName: !Ref LinkTable
+        - SQSSendMessagePolicy:
+            QueueName: !GetAtt LoggingDLQ.QueueName
+      Environment:
+        Variables:
+          TABLE_NAME: !Ref LinkTable
+      Events:
+        KinesisTrigger:
+          Type: Kinesis
+          Properties:
+            StartingPosition: TRIM_HORIZON
+            Stream: !GetAtt LoggingStream.Arn
+            BisectBatchOnFunctionError: true
+            MaximumBatchingWindowInSeconds: 15
+            MaximumRetryAttempts: 3
+            DestinationConfig:
+              OnFailure:
+                Destination: !GetAtt LoggingDLQ.Arn
+
+  # Uncomment if you need to limit accounts to a specific domian. Domain is harcoded in code file.
+  # LoginProcessor:
+  #   Type: AWS::Serverless::Function
+  #   Properties:
+  #     Runtime: nodejs12.x
+  #     CodeUri: src/login/
+  #     Handler: app.handler
+  #     MemorySize: 1024
+  #     Timeout: 45
+  #     Tracing: Active
+  #     Events:
+  #       CognitoUserPoolPreSignup:
+  #         Type: Cognito
+  #         Properties:
+  #           UserPool:
+  #             Ref: UserPool
+  #           Trigger: PreSignUp
+
+
+  LoggingDLQ:
+    Type: AWS::SQS::Queue
+          
+  ##   CloudFront access logs storage
+  CloudFrontAccessLogsBucket:
+    Type: AWS::S3::Bucket
+
+###################################################################################################
+##   IAM Roles                                                                                   ##
+###################################################################################################
+
+  ##   Dynamo DB Read Role
+  DDBReadRole:
+    Type: "AWS::IAM::Role"
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: "Allow"
+            Principal:
+              Service: "apigateway.amazonaws.com"
+            Action: 
+              - "sts:AssumeRole"
+      Policies:
+        - PolicyName: DDBReadPolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              Action:
+              - dynamodb:GetItem
+              - dynamodb:Scan
+              - dynamodb:Query
+              Effect: Allow
+              Resource:
+                - !GetAtt LinkTable.Arn
+                - !Sub
+                  - ${TableArn}/index/*
+                  - {TableArn: !GetAtt LinkTable.Arn}
+
+  ##   Dynamo DB Read/Write Role
+  DDBCrudRole:
+    Type: "AWS::IAM::Role"
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: "Allow"
+            Principal:
+              Service: "apigateway.amazonaws.com"
+            Action: 
+              - "sts:AssumeRole"
+      Policies:
+        - PolicyName: DDBCrudPolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              Action:
+              - dynamodb:DeleteItem
+              - dynamodb:UpdateItem
+              Effect: Allow
+              Resource: !GetAtt LinkTable.Arn
+
+## CloudWatchRole for aws gateway account
+  # Account:
+  #   Type: 'AWS::ApiGateway::Account'
+  #   Properties:
+  #     CloudWatchRoleArn: !GetAtt CloudWatchRole.Arn
+      
+  # CloudWatchRole:
+  #   Type: 'AWS::IAM::Role'
+  #   Properties:
+  #     AssumeRolePolicyDocument:
+  #       Version: 2012-10-17
+  #       Statement:
+  #         - Effect: Allow
+  #           Principal:
+  #             Service:
+  #               - apigateway.amazonaws.com
+  #           Action: 'sts:AssumeRole'
+  #     Path: /
+  #     ManagedPolicyArns:
+  #       - arn:aws:iam::aws:policy/service-role/AmazonAPIGatewayPushToCloudWatchLogs
+
+
+###################################################################################################
+##   Template outputs                                                                            ##
+###################################################################################################
+
+Outputs:
+  VueAppName:
+    Description: Name of your application
+    Value: !Ref AppName
+
+  VueAppAPIRoot:
+    Description: API Gateway endpoint URL for linker
+    Value: !GetAtt CloudFrontDistro.DomainName
+ 
+  VueAppAuthDomain: 
+    Description: Domain used for authentication
+    Value: !Sub https://${AppName}-${AWS::AccountId}.auth.${AWS::Region}.amazoncognito.com
+
+  VueAppClientId: 
+    Description: Cognito User Pool Client Id
+    Value: !Ref UserPoolClient

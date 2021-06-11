@@ -1,0 +1,435 @@
+openapi: "3.0.1"
+info:
+  title: {"Ref": "AppName"}
+  version: "1.0.0"
+
+x-amazon-apigateway-request-validators:
+  all:
+    validateRequestBody: true
+    validateRequestParameters: true
+  params:
+    validateRequestBody: false
+    validateRequestParameters: true
+  body:
+    validateRequestBody: true
+    validateRequestParameters: false
+
+paths:
+  /{linkId}:
+    ## URL redirector
+    get:
+      summary: Get a url by ID and redirect
+      x-amazon-apigateway-request-validator: params
+      parameters:
+        - in: path
+          name: linkId
+          schema:
+            type: string
+          required: true
+          description: Short link ID for full URL
+      responses:
+        "301":
+          description: "301 redirect"
+          headers:
+            Location:
+              type: "string"
+            Cache-Control:
+              type: "string"
+      
+      ## API Gateway Integration
+      x-amazon-apigateway-integration:
+        credentials:
+          Fn::GetAtt: [ DDBReadRole, Arn ]
+        uri: {"Fn::Sub":"arn:aws:apigateway:${AWS::Region}:dynamodb:action/GetItem"}
+        httpMethod: "POST"
+        requestTemplates:
+          application/json: {"Fn::Sub": "{\"Key\": {\"id\": {\"S\": \"$input.params().path.linkId\"}}, \"TableName\": \"${LinkTable}\"}"}
+        passthroughBehavior: "when_no_templates"
+        responses:
+          "200":
+            statusCode: "301"
+            responseParameters:
+              method.response.header.Location: {"Fn::Sub":["'https://${appDomain}/client/?link-not-found=true'", {"appDomain": { "Ref" : "CustomDomain" }}]}
+              method.response.header.Cache-Control: "'max-age=900'"
+            responseTemplates:
+              application/json: "#set($inputRoot = $input.path('$')) \
+                #if($inputRoot.toString().contains(\"Item\")) \
+                #set($context.responseOverride.header.Location = $inputRoot.Item.url.S) \
+                #end"
+        type: "aws"
+
+  /app:
+    ## Get all links for user
+    get:
+      summary: Fetch all links for authenticated user
+      security:
+      - UserAuthorizer: []
+      parameters:
+        - $ref: '#/components/parameters/authHeader'
+        - $ref: '#/components/parameters/pageKeyQuery'
+        - $ref: '#/components/parameters/pageSizeQuery'
+      responses:
+        "200":
+          description: "200 response"
+          headers:
+            Access-Control-Allow-Origin:
+              type: "string"
+            Cache-Control:
+              type: "string"
+            
+
+      ## API Gateway Integration
+      x-amazon-apigateway-integration:
+        credentials:
+          Fn::GetAtt: [ DDBReadRole, Arn ]
+        uri: {"Fn::Sub":"arn:aws:apigateway:${AWS::Region}:dynamodb:action/Query"}
+        httpMethod: "POST"
+        requestTemplates:
+          application/json: { "Fn::Sub": "#set( $pageKey = $input.params('pageKey')) \
+          {\"TableName\": \"${LinkTable}\", \
+            \"IndexName\":\"OwnerIndex\", \
+            #if($pageKey.toString() != \"\") \
+            \"ExclusiveStartKey\": $util.base64Decode($pageKey), \
+            #end \
+            \"Limit\": $input.params('pageSize'), \
+            \"KeyConditionExpression\": \"#n_owner = :v_owner\", \
+            \"ExpressionAttributeValues\": \
+            {\":v_owner\": {\"S\": \"$context.authorizer.claims.email\"}}, \
+            \"ExpressionAttributeNames\": {\"#n_owner\": \"owner\"}}"}
+        passthroughBehavior: "when_no_templates"
+        responses:
+          "200":
+            statusCode: "200"
+            responseParameters:
+              method.response.header.Cache-Control: "'no-cache, no-store'"
+              method.response.header.Access-Control-Allow-Origin: {"Fn::If": ["IsLocal", "'*'", {"Fn::Sub":["'https://${appDomain}'", {"appDomain": { "Ref" : "CustomDomain" }}]}]}
+            responseTemplates:
+              application/json: "#set($inputRoot = $input.path('$')){ \
+              \"LastEvaluatedKey\": \"$util.base64Encode($input.json('$.LastEvaluatedKey'))\", \
+              \"Items\": [ \
+                #foreach($elem in $inputRoot.Items) \
+                #set($count = $foreach.count - 1) \
+                { \
+                  \"id\":\"$elem.id.S\", \
+                  \"url\": \"$elem.url.S\", \
+                  \"timestamp\": \"$elem.timestamp.S\", \
+                  \"owner\": \"$elem.owner.S\", \
+                  \"clicks\": \"$elem.clicks.N\", \
+                  \"regions\": {
+                    #foreach($region in $elem.regions.M.keySet()) \
+                    #set($reach = $input.json(\"$.Items[$count].regions.M['$region'].N\")) \
+                      \"$region\":$reach#if($foreach.hasNext),#end \
+                    #end} \
+                  }#if($foreach.hasNext),#end \
+                #end]}"
+        type: "AWS"
+
+    ## Create a new link
+    post:
+      summary: Create new url
+      security:
+      - UserAuthorizer: []
+      x-amazon-apigateway-request-validator: body
+      parameters:
+        - $ref: '#/components/parameters/authHeader'
+      requestBody:
+        description: Optional description in *Markdown*
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PostBody'
+      responses:
+        "200":
+          description: "200 response"
+          headers:
+            Access-Control-Allow-Origin:
+              type: "string"
+        "400":
+          description: "400 response"
+          headers:
+            Access-Control-Allow-Origin:
+              type: "string"
+
+      ## API Gateway integration
+      x-amazon-apigateway-integration:
+        credentials:
+          Fn::GetAtt: [ DDBCrudRole, Arn ]
+        uri: { "Fn::Sub": "arn:aws:apigateway:${AWS::Region}:dynamodb:action/UpdateItem" }
+        httpMethod: "POST"
+        requestTemplates:
+          application/json: { "Fn::Sub": "{\"TableName\": \"${LinkTable}\",\
+            \"ConditionExpression\":\"attribute_not_exists(id)\", \
+            \"Key\": {\"id\": {\"S\": $input.json('$.id')}}, \
+            \"ExpressionAttributeNames\": {\"#u\": \"url\",\"#o\": \"owner\",\"#ts\": \"timestamp\",\"#r\":\"regions\"}, \
+            \"ExpressionAttributeValues\":{\":u\": {\"S\": $input.json('$.url')},\":o\": {\"S\": \"$context.authorizer.claims.email\"},\":ts\": {\"S\": \"$context.requestTime\"}, \":r\":{\"M\":{}}}, \
+            \"UpdateExpression\": \"SET #u = :u, #o = :o, #ts = :ts, #r = :r\", \
+            \"ReturnValues\": \"ALL_NEW\"}" }
+        passthroughBehavior: "when_no_templates"
+        responses:
+          "200":
+            statusCode: "200"
+            responseParameters:
+              method.response.header.Access-Control-Allow-Origin: {"Fn::If": ["IsLocal", "'*'", {"Fn::Sub":["'https://${appDomain}'", {"appDomain": { "Ref" : "CustomDomain" }}]}]}
+            responseTemplates:
+              application/json: "#set($inputRoot = $input.path('$')) \
+                {\"id\":\"$inputRoot.Attributes.id.S\", \
+                \"url\":\"$inputRoot.Attributes.url.S\",
+                \"timestamp\":\"$inputRoot.Attributes.timestamp.S\", \
+                \"owner\":\"$inputRoot.Attributes.owner.S\", \
+                \"clicks\":\"$inputRoot.Attributes.clicks.N\", \
+                \"regions\": {
+                  #foreach($region in $inputRoot.regions.M.keySet()) \
+                  #set($reach = $input.json(\"$.regions.M['$region'].N\")) \
+                    \"$region\":$reach#if($foreach.hasNext),#end \
+                  #end} \
+                }"
+          "400":
+            statusCode: "400"
+            responseParameters:
+              method.response.header.Access-Control-Allow-Origin: {"Fn::If": ["IsLocal", "'*'", {"Fn::Sub":["'https://${appDomain}'", {"appDomain": { "Ref" : "CustomDomain" }}]}]}
+            responseTemplates:
+              application/json: "#set($inputRoot = $input.path('$')) \
+                #if($inputRoot.toString().contains(\"ConditionalCheckFailedException\")) \
+                #set($context.responseOverride.status = 200)
+                {\"error\": true,\"message\": \"URL link already exists\"} \
+                #end"
+        type: "aws"
+
+    ## Options for get and post that do not have a linkId
+    options:
+      responses:
+        "200":
+          description: "200 response"
+          headers:
+            Access-Control-Allow-Origin:
+              schema:
+                type: "string"
+            Access-Control-Allow-Methods:
+              schema:
+                type: "string"
+            Access-Control-Allow-Headers:
+              schema:
+                type: "string"
+      x-amazon-apigateway-integration:
+        requestTemplates:
+          application/json: "{\"statusCode\": 200}"
+        passthroughBehavior: "when_no_match"
+        responses:
+          default:
+            statusCode: "200"
+            responseParameters:
+              method.response.header.Access-Control-Allow-Methods: "'POST, GET, OPTIONS'"
+              method.response.header.Access-Control-Allow-Headers: "'authorization, content-type'"
+              method.response.header.Access-Control-Allow-Origin: {"Fn::If": ["IsLocal", "'*'", {"Fn::Sub":["'https://${appDomain}'", {"appDomain": { "Ref" : "CustomDomain" }}]}]}
+        type: "mock"
+
+  /app/{linkId}:
+    ## Delete link
+    delete:
+      summary: Delete url
+      security:
+      - UserAuthorizer: []
+      x-amazon-apigateway-request-validator: params
+      parameters:
+        - $ref: '#/components/parameters/authHeader'
+        - $ref: '#/components/parameters/linkIdHeader'
+      responses:
+        "200":
+          description: "200 response"
+          headers:
+            Access-Control-Allow-Origin:
+              type: "string"
+        "400":
+          description: "400 response"
+      
+      ## AOI gateway integration
+      x-amazon-apigateway-integration:
+        credentials:
+          Fn::GetAtt: [ DDBCrudRole, Arn ]
+        uri: { "Fn::Sub": "arn:aws:apigateway:${AWS::Region}:dynamodb:action/DeleteItem" }
+        httpMethod: "POST"
+        requestTemplates:
+          application/json: { "Fn::Sub":  "{\"Key\": {\"id\": {\"S\": \"$input.params().path.linkId\"}}, \
+            \"TableName\": \"${LinkTable}\", \
+            \"ConditionExpression\": \"#owner = :owner\", \
+            \"ExpressionAttributeValues\":{\":owner\": {\"S\": \"$context.authorizer.claims.email\"}}, \
+            \"ExpressionAttributeNames\": {\"#owner\": \"owner\"}}" }
+        passthroughBehavior: "when_no_templates"
+        responses:
+          "200":
+            statusCode: "200"
+            responseParameters:
+              method.response.header.Access-Control-Allow-Origin: {"Fn::If": ["IsLocal", "'*'", {"Fn::Sub":["'https://${appDomain}'", {"appDomain": { "Ref" : "CustomDomain" }}]}]}
+          "400":
+            statusCode: "400"
+            responseTemplates:
+              application/json: "{\"error\": {\"message\":\"Either you do not have permission to do this operation or a parameter is missing\"}}"
+        type: "aws"
+    ## Update links
+    put:
+      summary: Update specific URL
+      security:
+      - UserAuthorizer: []
+      x-amazon-apigateway-request-validator: body
+      requestBody:
+        description: Optional description in *Markdown*
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PutBody'
+      parameters:
+        - $ref: '#/components/parameters/authHeader'
+        - $ref: '#/components/parameters/linkIdHeader'
+      responses:
+        "200":
+          description: "301 response"
+          headers:
+            Access-Control-Allow-Origin:
+              type: "string"
+        "400":
+          description: "400 response"
+          headers:
+            Access-Control-Allow-Origin:
+              type: "string"
+      
+      ## API gateway integration
+      x-amazon-apigateway-integration:
+        credentials:
+          Fn::GetAtt: [ DDBCrudRole, Arn ]
+        uri: { "Fn::Sub": "arn:aws:apigateway:${AWS::Region}:dynamodb:action/UpdateItem" }
+        httpMethod: "POST"
+        requestTemplates:
+          application/json: { "Fn::Sub": "{\"TableName\": \"${LinkTable}\",\
+            \"Key\": {\"id\": {\"S\": $input.json('$.id')}}, \
+            \"ExpressionAttributeNames\": {\"#u\": \"url\", \"#owner\": \"owner\", \"#id\":\"id\"}, \
+            \"ExpressionAttributeValues\":{\":u\": {\"S\": $input.json('$.url')}, \":owner\": {\"S\": \"$context.authorizer.claims.email\"}, \":linkId\":{\"S\":\"$input.params().path.linkId\"}}, \
+            \"UpdateExpression\": \"SET #u = :u\", \
+            \"ReturnValues\": \"ALL_NEW\", \
+            \"ConditionExpression\": \"#owner = :owner AND #id = :linkId\"}" }
+        passthroughBehavior: "when_no_templates"
+        responses:
+          "200":
+            statusCode: "200"
+            responseParameters:
+              method.response.header.Access-Control-Allow-Origin: {"Fn::If": ["IsLocal", "'*'", {"Fn::Sub":["'https://${appDomain}'", {"appDomain": { "Ref" : "CustomDomain" }}]}]}
+            responseTemplates:
+              application/json: "#set($inputRoot = $input.path('$')) \
+                {\"id\":\"$inputRoot.Attributes.id.S\", \
+                \"url\":\"$inputRoot.Attributes.url.S\",
+                \"timestamp\":\"$inputRoot.Attributes.timestamp.S\", \
+                \"owner\":\"$inputRoot.Attributes.owner.S\", \
+                \"clicks\":\"$inputRoot.Attributes.clicks.N\", \
+                \"regions\": {
+                  #foreach($region in $inputRoot.regions.M.keySet()) \
+                  #set($reach = $input.json(\"$.regions.M['$region'].N\")) \
+                    \"$region\":$reach#if($foreach.hasNext),#end \
+                  #end} \
+                }"
+          "400":
+            statusCode: "400"
+            responseParameters:
+              method.response.header.Access-Control-Allow-Origin: {"Fn::If": ["IsLocal", "'*'", {"Fn::Sub":["'https://${appDomain}'", {"appDomain": { "Ref" : "CustomDomain" }}]}]}
+            application/json: "{\"error\": {\"message\":\"Either you do not have permission to do this operation or a parameter is missing\"}}"
+        type: "aws"
+    options:
+      responses:
+        "200":
+          description: "200 response"
+          headers:
+            Access-Control-Allow-Origin:
+              schema:
+                type: "string"
+            Access-Control-Allow-Methods:
+              schema:
+                type: "string"
+            Access-Control-Allow-Headers:
+              schema:
+                type: "string"
+      x-amazon-apigateway-integration:
+        requestTemplates:
+          application/json: "{\"statusCode\" : 200}"
+        passthroughBehavior: "when_no_match"
+        responses:
+          default:
+            statusCode: "200"
+            responseParameters:
+              method.response.header.Access-Control-Allow-Methods: "'PUT, DELETE, OPTIONS'"
+              method.response.header.Access-Control-Allow-Headers: "'authorization, content-type'"
+              method.response.header.Access-Control-Allow-Origin: {"Fn::If": ["IsLocal", "'*'", {"Fn::Sub":["'https://${appDomain}'", {"appDomain": { "Ref" : "CustomDomain" }}]}]}
+        type: "mock"
+
+## Validation models
+components:
+  schemas:
+    PostBody:
+      type: object
+      properties:
+        id:
+          type: string
+        url:
+          type: string
+          #pattern: /((([A-Za-z]{3,9}:(?:\/\/)?)(?:[-;:&=\+\$,\w]+@)?[A-Za-z0-9.-]+|(?:www.|[-;:&=\+\$,\w]+@)[A-Za-z0-9.-]+)((?:\/[\+~%\/.\w-_]*)?\??(?:[-\+=&;%@.\w_]*)#?(?:[\w]*))?)/
+      required:
+        - id
+        - url
+    PutBody:
+      type: object
+      properties:
+        id:
+          type: string
+        url:
+          type: string
+          #pattern: /((([A-Za-z]{3,9}:(?:\/\/)?)(?:[-;:&=\+\$,\w]+@)?[A-Za-z0-9.-]+|(?:www.|[-;:&=\+\$,\w]+@)[A-Za-z0-9.-]+)((?:\/[\+~%\/.\w-_]*)?\??(?:[-\+=&;%@.\w_]*)#?(?:[\w]*))?)/
+        timestamp:
+          type: string
+        owner:
+          type: string
+      required:
+        - id
+        - url
+        - timestamp
+        - owner
+  parameters:
+    authHeader:
+      in: header
+      name: Authorization
+      required: true
+      description: Contains authorization token
+      schema:
+        type: string
+    linkIdHeader:
+      in: path
+      name: linkId
+      required: true
+      description: Short link ID for full URL
+      schema:
+        type: string
+    pageKeyQuery:
+      in: query
+      name: pageKey
+      required: false
+      description: Last indexed key for pagination
+      schema:
+        type: string
+    pageSizeQuery:
+      in: query
+      name: pageSize
+      required: false
+      description: Page size for pagination
+      schema:
+        type: integer
+
+
+## Authorizer definition
+securityDefinitions:
+  UserAuthorizer:
+    type: "apiKey"
+    name: "Authorization"
+    in: "header"
+    x-amazon-apigateway-authtype: "cognito_user_pools"
+    x-amazon-apigateway-authorizer:
+      providerARNs:
+      - Fn::GetAtt: [ UserPool, Arn ]
+      type: "cognito_user_pools"

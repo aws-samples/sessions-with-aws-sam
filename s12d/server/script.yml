@@ -1,0 +1,21 @@
+# Used with serverless-artillery for load testing.
+# `slsart invoke --stage us` or `slsart invoke --stage eu`
+# With proper credentials :)
+
+config:
+  target: "http://beta.s12d.com"
+  phases:
+    - duration: 60
+      arrivalRate: 20
+scenarios:
+  -
+    flow:
+      - get:
+          url: "/sam"
+          followredirects: false
+      - get:
+          url: "/serverless"
+          followredirects: false
+      - get:
+        url: "/broken"
+        followredirects: false
