@@ -23,7 +23,13 @@ This is a sample template for Go on Amazon Linux 2 (AL2) - Below is a brief expl
 
 ## Setup process
 
-### Installing dependencies & building the target 
+### Installing dependencies & building the target
+
+Install the go lambda module
+
+```shell
+get get github.com/aws/aws-lambda-go/events
+```
 
 In this example we use the built-in `sam build` to automatically download all the dependencies and package our build target.   
 Read more about [SAM Build here](https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/sam-cli-command-reference-sam-build.html) 
