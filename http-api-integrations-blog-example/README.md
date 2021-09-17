@@ -37,7 +37,7 @@ Update the '\<url\>' with your URL after deployment
 
 ### SQS
 ```bash
-curl --location --request POST '<url>/sqs' \
+curl --location --request POST '<url>/' \
 --header 'Content-Type: application/json' \
 --data-raw '{"MessageBody":"This is my message"}'
 ```
