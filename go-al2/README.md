@@ -28,7 +28,7 @@ This is a sample template for Go on Amazon Linux 2 (AL2) - Below is a brief expl
 Install the go lambda module
 
 ```shell
-get get github.com/aws/aws-lambda-go/events
+go get github.com/aws/aws-lambda-go/events
 ```
 
 In this example we use the built-in `sam build` to automatically download all the dependencies and package our build target.   

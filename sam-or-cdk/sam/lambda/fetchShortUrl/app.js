@@ -8,7 +8,7 @@ exports.handler = async function (event) {
   let response = {
     "isBase64Encoded": false,
     "statusCode": 200,
-    "body": JSON.stringify({"Mesaage": "Signed URL not found or expired"}),
+    "body": JSON.stringify({"Message": "Signed URL not found or expired"}),
     "headers": {
       "Content-Type": "application/json",
       "Location": ""

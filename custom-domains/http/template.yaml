@@ -35,7 +35,7 @@ Resources:
       DomainName: !Ref DomainName
       ValidationMethod: DNS
 
-  HttpApiGateway: # Creates a HTTP API endpoint under the customm domian
+  HttpApiGateway: # Creates a HTTP API endpoint under the customm domain
     Type: AWS::Serverless::HttpApi
     Properties:
       Domain:
