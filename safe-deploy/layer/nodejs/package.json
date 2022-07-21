@@ -9,7 +9,7 @@
   "author": "Eric Johnson",
   "license": "MIT",
   "dependencies": {
-    "aws-sdk": "^2.437.0",
-    "node-fetch": "^2.6.1"
+    "aws-sdk": "^2.814.0",
+    "node-fetch": "^2.6.7"
   }
 }
