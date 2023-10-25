@@ -11,11 +11,11 @@ Resources:
       Description: Base layer for node apps (AWS-SDK, Axios)
       ContentUri: node-base/
       # CompatibleRuntimes: 
-      #   - nodejs12.x
+      #   - nodejs16.x
       # LicenseInfo: 'MIT'
       RetentionPolicy: Retain
     Metadata:
-      BuildMethod: nodejs12.x
+      BuildMethod: nodejs16.x
       
   NodeBaseLayerPermission:
     Type: "AWS::Lambda::LayerVersionPermission"
@@ -31,7 +31,7 @@ Resources:
       ContentUri: node-utilities/
       RetentionPolicy: Retain
     Metadata:
-      BuildMethod: nodejs12.x
+      BuildMethod: nodejs16.x
       
   NodeUtilitiesLayerPermission:
     Type: "AWS::Lambda::LayerVersionPermission"

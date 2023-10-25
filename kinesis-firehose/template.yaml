@@ -65,7 +65,7 @@ Resources:
       Timeout: 180
       CodeUri: src/
       Handler: process.handler
-      Runtime: nodejs12.x
+      Runtime: nodejs16.x
       Policies:
         - DynamoDBCrudPolicy: {TableName: !Ref ProcessedDataTable}
       Environment:
@@ -79,7 +79,7 @@ Resources:
       Timeout: 180
       CodeUri: src/
       Handler: count.handler
-      Runtime: nodejs12.x
+      Runtime: nodejs16.x
       Policies:
         - DynamoDBCrudPolicy: {TableName: !Ref CountTable}
       Environment:

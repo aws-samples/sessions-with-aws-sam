@@ -22,7 +22,7 @@ Resources:
             Path: /hello
             Method: get
     Metadata:
-      DockerTag: nodejs12.x-v1
+      DockerTag: nodejs16.x-v1
       DockerContext: ./hello-world
       Dockerfile: Dockerfile
       
@@ -37,7 +37,7 @@ Resources:
             Path: /goodbye
             Method: get
     Metadata:
-      DockerTag: nodejs12.x-v1
+      DockerTag: nodejs16.x-v1
       DockerContext: ./goodbye-world
       Dockerfile: Dockerfile
 

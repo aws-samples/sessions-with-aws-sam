@@ -314,7 +314,7 @@ Resources:
   LoggingProcessor:
     Type: AWS::Serverless::Function
     Properties:
-      Runtime: nodejs12.x
+      Runtime: nodejs16.x
       CodeUri: src/analytics/
       Handler: app.handler
       MemorySize: 1024
@@ -345,7 +345,7 @@ Resources:
   # LoginProcessor:
   #   Type: AWS::Serverless::Function
   #   Properties:
-  #     Runtime: nodejs12.x
+  #     Runtime: nodejs16.x
   #     CodeUri: src/login/
   #     Handler: app.handler
   #     MemorySize: 1024

@@ -14,7 +14,7 @@
     "configuration": {
       "functionName": "AccountConfig-custom-rules-GenericRuleLambda-C9ND6GWEZMA6",
       "functionArn": "arn:aws:lambda:us-west-2:088483494489:function:AccountConfig-custom-rules-GenericRuleLambda-C9ND6GWEZMA6",
-      "runtime": "nodejs12.x",
+      "runtime": "nodejs16.x",
       "role": "arn:aws:iam::088483494489:role/AccountConfig-custom-rules-GenericRuleLambdaRole-Z12JF10PWPH1",
       "handler": "generic-by-params.handler",
       "codeSize": 1332,
