@@ -10,7 +10,7 @@ Parameters:
 Globals:
   Function:
     Timeout: 5
-    Runtime: nodejs12.x
+    Runtime: nodejs16.x
     Tracing: Active
     Layers:
       - !Ref ResourcesLayer
@@ -30,7 +30,7 @@ Resources:
         LayerName: resources
         ContentUri: layer/
         CompatibleRuntimes:
-          - nodejs12.x
+          - nodejs16.x
         LicenseInfo: 'MIT'
         RetentionPolicy: Retain
 

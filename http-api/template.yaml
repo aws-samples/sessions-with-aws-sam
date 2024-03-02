@@ -14,7 +14,7 @@ Globals:
   Function:
     Timeout: 5
     Handler: app.lambdaHandler
-    Runtime: nodejs12.x
+    Runtime: nodejs16.x
 
 Resources:
   HttpApi:

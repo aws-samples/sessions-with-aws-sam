@@ -65,7 +65,7 @@ Resources:
     Properties:
       CodeUri: src/
       Handler: app.lambdaHandler
-      Runtime: nodejs12.x
+      Runtime: nodejs16.x
       Policies:
         - SQSPollerPolicy:
             QueueName: !GetAtt MyQueue.QueueName
