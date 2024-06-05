@@ -25,6 +25,12 @@ This is a sample template for Go on Amazon Linux 2 (AL2) - Below is a brief expl
 
 ### Installing dependencies & building the target
 
+Init a go module to create go.mod
+
+```shell
+go mod init hello-world
+```
+
 Install the go lambda module
 
 ```shell
