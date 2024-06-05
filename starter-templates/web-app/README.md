@@ -96,7 +96,7 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       Handler: src/handlers/get-all-items.getAllItemsHandler
-      Runtime: nodejs12.x
+      Runtime: nodejs16.x
       DeadLetterQueue:
         Type: SQS 
         TargetArn: !GetAtt MyQueue.Arn
